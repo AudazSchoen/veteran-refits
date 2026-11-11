@@ -59,6 +59,14 @@ All of these can be changed in LunaLib's mod settings (F2 by default, then **Vet
 - **Don't use it together with Progressive S-Mods.** Both raise the same S-mod limit stat.
 - The refit button and the ship card icons reach into the game's refit UI through reflection. If a game update breaks that, they switch off and log an error. The entry in LunaLib's refit button list keeps working.
 
+## Credits
+
+Some techniques were learned from reading these mods. No code was copied.
+
+- **[LunaLib](https://fractalsoftworks.com/forum/index.php?topic=25658.0)** by Lukas04: the refit button and panel API, the mod settings, and the workaround for reflection into the game's UI.
+- **Progressive S-Mods** by qcwxezda and chdcl: the original idea of earning S-mods through ship XP, raising the S-mod limit with a hidden hullmod, and its build-in rules.
+- **Exiled Sector** by Portals: placing a button under vanilla's "Build in" button, and the refit screen's frame measurements.
+
 ## AI use
 
 This mod was made with an AI coding assistant, Claude (Anthropic), used through Claude Code.
