@@ -71,11 +71,6 @@ public class XPSModsRefitButton extends BaseRefitButton {
         new Content(backgroundPanel, member, variant, market).build();
     }
 
-    /** XP cost of the next slot: baseSlotXP * slotCostMult ^ slotsAlreadyBought. */
-    static float nextSlotCost(int bought) {
-        return XPSModsSettings.baseSlotXP * (float) Math.pow(XPSModsSettings.slotCostMult, bought);
-    }
-
     /** Credits to build in: max(minBuildInCredits, creditsPerOP * OP cost * buildInSizeMult). */
     static float buildInCost(HullModSpecAPI spec, HullSize size) {
         float cost = XPSModsSettings.creditsPerOP * spec.getCostFor(size) * XPSModsSettings.buildInSizeMult(size);
@@ -167,7 +162,7 @@ public class XPSModsRefitButton extends BaseRefitButton {
             int vanilla = limit - (member.getVariant().hasHullMod(XPSlotsHullmod.ID) ? bonus : 0);
             int used = Misc.getCurrSpecialMods(variant);
             int maxExtra = XPSModsSettings.maxExtraSlots;
-            float slotCost = nextSlotCost(bought);
+            float slotCost = XPData.nextSlotCost(bought);
             float credits = credits().get();
             boolean module = isModule();
 
@@ -261,7 +256,7 @@ public class XPSModsRefitButton extends BaseRefitButton {
             if (isModule()) return;
             String id = member.getId();
             int bought = XPData.getBoughtSlots(id);
-            float cost = nextSlotCost(bought);
+            float cost = XPData.nextSlotCost(bought);
             if (bought >= XPSModsSettings.maxExtraSlots || XPData.getXP(id) < cost) return;
 
             XPData.spendXP(id, cost);

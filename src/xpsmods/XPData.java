@@ -55,6 +55,18 @@ public final class XPData {
         XPData.<Integer>map(SLOTS_KEY).put(memberId, slots);
     }
 
+    /** XP cost of the next slot: baseSlotXP * slotCostMult ^ slotsAlreadyBought. */
+    public static float nextSlotCost(int bought) {
+        return XPSModsSettings.baseSlotXP * (float) Math.pow(XPSModsSettings.slotCostMult, bought);
+    }
+
+    /** True when the ship has enough XP to buy its next slot and isn't at the cap. */
+    public static boolean canBuySlot(String memberId) {
+        if (memberId == null) return false;
+        int bought = getBoughtSlots(memberId);
+        return bought < XPSModsSettings.maxExtraSlots && getXP(memberId) >= nextSlotCost(bought);
+    }
+
     /**
      * Extra S-mod slots this ship gets: bought slots (or the debug override), capped at maxExtraSlots.
      * Safe to call outside the campaign (missions, simulator), where it returns 0.

@@ -31,6 +31,7 @@ public final class XPSModsSettings {
     public static int refitHotkey = Keyboard.KEY_U;
     /** Testing only: when above 0, every ship is treated as having this many bought slots. */
     public static int debugGrantSlots = 0;
+    public static boolean showUpgradeIcon = true;
 
     private static final Map<HullSize, Float> hullSizeMult = new EnumMap<HullSize, Float>(HullSize.class);
     static {
@@ -69,6 +70,7 @@ public final class XPSModsSettings {
         debugLog = json.optBoolean("debugLog", debugLog);
         maxExtraSlots = (int) getFloat(json, "maxExtraSlots", maxExtraSlots);
         debugGrantSlots = (int) getFloat(json, "debugGrantSlots", debugGrantSlots);
+        showUpgradeIcon = json.optBoolean("showUpgradeIcon", showUpgradeIcon);
         baseSlotXP = getFloat(json, "baseSlotXP", baseSlotXP);
         slotCostMult = getFloat(json, "slotCostMult", slotCostMult);
         creditsPerOP = getFloat(json, "creditsPerOP", creditsPerOP);

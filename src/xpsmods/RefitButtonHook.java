@@ -47,13 +47,34 @@ public class RefitButtonHook implements EveryFrameScript {
 
     @Override
     public void advance(float amount) {
-        if (failed || Global.getSector() == null) return;
+        if (Global.getSector() == null) return;
         CampaignUIAPI ui = Global.getSector().getCampaignUI();
-        if (ui == null || ui.getCurrentCoreTab() != CoreUITabId.REFIT) return;
+        if (ui == null) return;
+        if (ui.getCurrentCoreTab() != CoreUITabId.REFIT) return;
 
+        Object tab;
         try {
-            Object core = UiReflect.coreUI(ui);
-            Object tab = UiReflect.call(core, "getCurrentTab");
+            tab = UiReflect.call(UiReflect.coreUI(ui), "getCurrentTab");
+        } catch (Throwable t) {
+            failed = true;
+            UpgradeIconOverlay.failed = true;
+            log.error("XP S-Mods: could not read the refit screen; the button under 'Build in' and the "
+                    + "upgrade icons stay off until the game restarts", t);
+            return;
+        }
+
+        if (!UpgradeIconOverlay.failed && tab instanceof UIPanelAPI) {
+            try {
+                UpgradeIconOverlay.ensureAttached((UIPanelAPI) tab);
+            } catch (Throwable t) {
+                UpgradeIconOverlay.failed = true;
+                log.error("XP S-Mods: could not add upgrade icons to the refit ship list; "
+                        + "they stay off until the game restarts", t);
+            }
+        }
+
+        if (failed) return;
+        try {
             Object refitPanel = UiReflect.call(tab, "getRefitPanel");
             Object modDisplay = UiReflect.call(refitPanel, "getModDisplay");
             Object mods = UiReflect.call(modDisplay, "getMods");

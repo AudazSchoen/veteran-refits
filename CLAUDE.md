@@ -17,6 +17,8 @@ Milestones 1 (mod_info.json, jar build, mod plugin) and 2 (settings + XP trackin
   - `XPSModsRefitButton` (a LunaLib `BaseRefitButton`) is the panel: XP, S-mod limit, buying slots, and building in or removing S-mods for credits. The build-in list and S-mod count follow vanilla (`getNonBuiltInHullmods()` minus hidden, d-mod, perma and `no_build_in` mods; `Misc.getCurrSpecialMods`). Built-in hullmod enhancement (`getSModdedBuiltIns`) is deferred. When it changes a ship, it must add the hullmod to the refit screen's `variant` as well as `member.getVariant()`, then call `refreshVariant()`, because LunaLib's refresh saves the refit variant back onto the ship.
   - `RefitButtonHook` (a transient every-frame script) re-attaches a "Ship upgrades" button with the `refitHotkey` under vanilla "Build in" via `coreUI.getCurrentTab().getRefitPanel().getModDisplay().getMods().getPerm()`. It opens the panel the way LunaLib's `RefitButtonAdder` does (Exiled Sector's `RefitPanelLauncher` does the same). On any reflection failure it logs once and switches off until the game restarts.
   - `UiReflect`: the game blocks `java.lang.reflect` in mod code, so reflection goes through `MethodHandles` on `Class.forName("java.lang.reflect.Method")`, the same as LunaLib. Reference sources: `../LunaLib-2.0.5/src`, `../Progressive S-Mods-1.2.0/src`. Exiled Sector (`../Exiled Sector-0.12.4`) only ships jars; read them with `javap -p -c -constants`.
+- Polish step 1 (upgrade icon) is done. The icon is shown on the refit screen only; the fleet screen was deliberately skipped.
+  - `UpgradeIconOverlay` is an input-less panel on the refit tab. It draws vanilla's `graphics/icons/intel/log_upgrade.png` in the top-left of ship cards (the top-right holds vanilla's S-mod/d-mod indicators) where `XPData.canBuySlot` is true, reading `refitTab.getFleetList().getItems()` and `refitTab.getButtonToMember()` every frame. It has its own failure switch, separate from the "Build in" button's.
 - Auto-resolve gotcha: `BattleAutoresolverPluginImpl`'s results always return `false` from `EngagementResultForFleetAPI.isPlayer()` and have no damage data, so kill XP is split evenly across the deployed ships there. Identify the player's side with `Misc.isPlayerOrCombinedContainingPlayer(side.getFleet())`.
 
 ## Build
@@ -66,7 +68,7 @@ Every number below goes in data/config/xpsmods_settings.json so it can be tuned 
 - Build-in cost: max(minBuildInCredits, creditsPerOP * hullmod OP cost * buildInSizeMult[size]). `buildInSizeMult` is separate from the XP `hullSizeMult`.
 - Removing S-mods: allowed (setting allowRemoval) for removalFeeFraction of the build-in cost, with the same minimum. The hullmod is removed from the ship entirely (`removePermaMod` + `removeMod`), not left as a normal hullmod. The slot stays bought.
 - Vanilla story-point build-in stays untouched. This mod adds a second way to build in hullmods.
-- Optional setting: show a ship's XP in its tooltip or in the refit screen if that's feasible.
+- Upgrade indicator: instead of showing a ship's XP count in its tooltip, show an icon that tells the player an upgrade is available for that ship.
 
 Where the player does it
 
@@ -88,4 +90,4 @@ Milestones (one at a time, test in-game after each)
 - Extra-slot stat bonus applied from stored data. The vanilla refit screen shows the raised limit.
 - Refit screen panel and button under "Build in": view a ship's XP and buy slots.
 - Build in and remove S-mods for credits in the same panel.
-- Polish: tooltips, balance, edge cases (ship sold, scuttled, lost or recovered; d-mods; built-in hullmods; hullmods that can't be built in).
+- Polish: refit panel styled close to vanilla UI; upgrade-available icon instead of an XP count; balance; edge cases (ship sold, scuttled, lost or recovered; pruning stored entries for ships that no longer exist; multi-section ship modules; building in built-in hullmods that vanilla can enhance; d-mods; hullmods that can't be built in).
