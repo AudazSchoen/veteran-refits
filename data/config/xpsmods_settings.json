@@ -12,7 +12,7 @@
 	"maxExtraSlots": 3,
 	"baseSlotXP": 1000,
 	"slotCostMult": 2.0,
-	"refitHotkey": "U",
+	"refitHotkey": "S",
 	"creditsPerOP": 1500,
 	"minBuildInCredits": 10000,
 	"buildInSizeMult": {

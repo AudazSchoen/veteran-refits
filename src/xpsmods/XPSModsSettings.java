@@ -28,7 +28,7 @@ public final class XPSModsSettings {
     public static boolean allowRemoval = true;
     public static float removalFeeFraction = 0.25f;
     /** LWJGL key code for the refit button; 0 means no hotkey. */
-    public static int refitHotkey = Keyboard.KEY_U;
+    public static int refitHotkey = Keyboard.KEY_S;
     /** Testing only: when above 0, every ship is treated as having this many bought slots. */
     public static int debugGrantSlots = 0;
     public static boolean showUpgradeIcon = true;
@@ -85,7 +85,7 @@ public final class XPSModsSettings {
                 log.warn("XP S-Mods: unknown refitHotkey '" + key + "', hotkey disabled");
             }
         } else {
-            log.warn("XP S-Mods: settings missing refitHotkey, using default U");
+            log.warn("XP S-Mods: settings missing refitHotkey, using default S");
         }
 
         loadSizeMults(json, "hullSizeMult", hullSizeMult);

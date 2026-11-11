@@ -77,23 +77,38 @@ public class RefitButtonHook implements EveryFrameScript {
         try {
             Object refitPanel = UiReflect.call(tab, "getRefitPanel");
             Object modDisplay = UiReflect.call(refitPanel, "getModDisplay");
-            Object mods = UiReflect.call(modDisplay, "getMods");
-            if (!(mods instanceof UIPanelAPI)) return;
-            Object perm = UiReflect.call(mods, "getPerm");
-            if (!(perm instanceof ButtonAPI)) return;
+            if (modDisplay == null) return;
+            ensureButton(UiReflect.call(modDisplay, "getMods"));
 
-            // The game rebuilds this panel (for example when switching ships), so re-attach when missing.
-            for (Object child : UiReflect.children(mods)) {
-                if (child instanceof CustomPanelAPI && ((CustomPanelAPI) child).getPlugin() instanceof ColumnButtonPlugin) {
-                    return;
+            // The "add hullmod" picker (ModPickerDialogV3) is a child of the core UI with its own copy of
+            // the mod display, and so its own "Build in" button (same approach as Progressive S-Mods).
+            for (Object child : UiReflect.children(UiReflect.coreUI(ui))) {
+                if (!UiReflect.hasMethod(child, "getChildrenNonCopy", 0)) continue;
+                for (Object sub : UiReflect.children(child)) {
+                    if (sub != modDisplay && sub != null && sub.getClass() == modDisplay.getClass()) {
+                        ensureButton(UiReflect.call(sub, "getMods"));
+                    }
                 }
             }
-            attach((UIPanelAPI) mods, (ButtonAPI) perm);
         } catch (Throwable t) {
             failed = true;
             log.error("XP S-Mods: could not add the button under 'Build in' in the refit screen; "
                     + "it stays off until the game restarts (the LunaLib refit list button still works)", t);
         }
+    }
+
+    /** Adds our button under this mods panel's "Build in" button, unless it's already there. */
+    private static void ensureButton(Object mods) throws Throwable {
+        if (!(mods instanceof UIPanelAPI)) return;
+        Object perm = UiReflect.call(mods, "getPerm");
+        if (!(perm instanceof ButtonAPI)) return;
+        // The game rebuilds these panels (for example when switching ships), so re-attach when missing.
+        for (Object child : UiReflect.children(mods)) {
+            if (child instanceof CustomPanelAPI && ((CustomPanelAPI) child).getPlugin() instanceof ColumnButtonPlugin) {
+                return;
+            }
+        }
+        attach((UIPanelAPI) mods, (ButtonAPI) perm);
     }
 
     private static void attach(UIPanelAPI mods, ButtonAPI perm) {
@@ -117,13 +132,7 @@ public class RefitButtonHook implements EveryFrameScript {
     /** Opens our LunaLib panel the same way LunaLib's own refit button list does (RefitButtonAdder.kt). */
     static void openPanel() {
         BaseRefitButton button = LunaRefitManager.getFirstButtonOfClass(XPSModsRefitButton.class);
-        RefitButtonAdder adder = null;
-        for (EveryFrameScript script : Global.getSector().getTransientScripts()) {
-            if (script instanceof RefitButtonAdder) {
-                adder = (RefitButtonAdder) script;
-                break;
-            }
-        }
+        RefitButtonAdder adder = RefitFrame.lunaAdder();
         if (button == null || adder == null) {
             log.warn("XP S-Mods: LunaLib refit manager not found, can't open the panel");
             return;
