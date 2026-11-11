@@ -1,0 +1,32 @@
+fieldID,fieldName,fieldType,defaultValue,secondaryValue,fieldDescription,minValue,maxValue,tab
+xpsmods_headerXP,Ship XP,Header,Earning XP in battle,,,,,XP
+xpsmods_xpPerHullDamage,XP per hull damage,Double,0.05,,XP per point of hull damage a ship deals (0.05 = 50 XP per 1000 damage).,0,1,XP
+xpsmods_killXP,XP per kill,Double,100,,"XP for each enemy ship disabled or destroyed, multiplied by the enemy's hull size multiplier and split by each of your ships' share of the damage (evenly in auto-resolve).",0,2000,XP
+xpsmods_reserveShareOfAverage,Reserve share of average,Double,0.25,,Undeployed (reserve and civilian) ships earn this fraction of the average XP of the deployed ships. Mothballed ships earn nothing.,0,1,XP
+xpsmods_hullSizeMultFrigate,Hull size multiplier: frigate,Double,1,,Scales kill XP for enemy frigates.,0,10,XP
+xpsmods_hullSizeMultDestroyer,Hull size multiplier: destroyer,Double,1.5,,Scales kill XP for enemy destroyers.,0,10,XP
+xpsmods_hullSizeMultCruiser,Hull size multiplier: cruiser,Double,2,,Scales kill XP for enemy cruisers.,0,10,XP
+xpsmods_hullSizeMultCapital,Hull size multiplier: capital,Double,3,,Scales kill XP for enemy capital ships.,0,10,XP
+xpsmods_headerSlots,Extra S-mod slots,Header,Buying extra S-mod slots with XP,,,,,Slots
+xpsmods_maxExtraSlots,Max extra slots,Int,3,,Most extra S-mod slots a ship can buy on top of vanilla's limit.,0,10,Slots
+xpsmods_baseSlotXP,First slot XP cost,Double,1000,,XP cost of a ship's first extra slot.,0,100000,Slots
+xpsmods_slotCostMult,Slot cost growth,Double,2,,"Each further slot costs this much more than the last: cost = first slot cost x growth ^ slots already bought. With many slots, a lower value (for example 1.3) keeps late slots reachable.",1,10,Slots
+xpsmods_headerCredits,Building in,Header,Building in and removing S-mods with credits,,,,,Credits
+xpsmods_creditsPerOP,Credits per OP,Double,1000,,Build-in cost = credits per OP x the hullmod's OP cost x the hull size multiplier below (at least the minimum).,0,100000,Credits
+xpsmods_minBuildInCredits,Minimum cost,Double,1000,,Lowest price for building in or removing an S-mod.,0,1000000,Credits
+xpsmods_buildInSizeMultFrigate,Hull size multiplier: frigate,Double,1,,Build-in cost multiplier for frigates.,0,10,Credits
+xpsmods_buildInSizeMultDestroyer,Hull size multiplier: destroyer,Double,1.25,,Build-in cost multiplier for destroyers.,0,10,Credits
+xpsmods_buildInSizeMultCruiser,Hull size multiplier: cruiser,Double,1.5,,Build-in cost multiplier for cruisers.,0,10,Credits
+xpsmods_buildInSizeMultCapital,Hull size multiplier: capital,Double,2,,Build-in cost multiplier for capital ships.,0,10,Credits
+xpsmods_enhanceCostMult,Built-in enhancement price,Double,0.5,,Enhancing a built-in hullmod costs this fraction of the normal build-in price.,0,5,Credits
+xpsmods_allowRemoval,Allow removing S-mods,Boolean,true,,Allows removing S-mods and built-in enhancements for a fee. Bought slots stay.,,,Credits
+xpsmods_removalFeeFraction,Removal fee,Double,0.25,,"Removing costs this fraction of the build-in price (at least the minimum cost, except for built-in enhancements).",0,2,Credits
+xpsmods_headerInterface,Interface,Header,Refit screen,,,,,Interface
+xpsmods_refitHotkey,Ship upgrades hotkey,Keycode,31,,Hotkey for the Ship upgrades button under vanilla's Build in button in the refit screen. Applies the next time the refit screen is opened.,,,Interface
+xpsmods_showUpgradeIcon,Show upgrade icon,Boolean,true,,Shows a green arrow on refit ship cards for ships with enough XP to buy their next slot.,,,Interface
+xpsmods_battleReport,Battle report,Boolean,true,,"After each engagement, lists the XP each ship earned and which ships can buy an S-mod slot in the post-battle dialog.",,,Interface
+xpsmods_headerData,Saved data,Header,Saved ship data,,,,,Data
+xpsmods_pruneAfterMonths,Forget ships after (months),Int,12,,Stored XP and slots of a ship not seen in your fleet or any storage for this many months are removed. 0 = never.,0,120,Data
+xpsmods_headerDebug,Debug,Header,Debug,,,,,Debug
+xpsmods_debugLog,Debug logging,Boolean,false,,Writes XP awards and other details to starsector.log.,,,Debug
+xpsmods_debugGrantSlots,Grant slots to every ship,Int,0,,Testing only: every ship is treated as having this many bought slots (capped at max extra slots). 0 = off.,0,10,Debug

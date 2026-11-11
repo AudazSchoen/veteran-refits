@@ -29,6 +29,16 @@ final class SModRules {
         return Math.max(XPSModsSettings.minBuildInCredits, buildInCost(spec, size) * XPSModsSettings.removalFeeFraction);
     }
 
+    /** Credits to enhance a built-in hullmod: enhanceCostMult x the normal build-in price. */
+    static float enhanceCost(HullModSpecAPI spec, HullSize size) {
+        return buildInCost(spec, size) * XPSModsSettings.enhanceCostMult;
+    }
+
+    /** Credits to remove an enhancement: the removal fee on the enhancement price (no minimum). */
+    static float enhanceRemovalCost(HullModSpecAPI spec, HullSize size) {
+        return enhanceCost(spec, size) * XPSModsSettings.removalFeeFraction;
+    }
+
     /** Installed hullmods that can become S-mods (same filter as Progressive S-Mods and vanilla). */
     static List<HullModSpecAPI> buildInCandidates(ShipVariantAPI variant) {
         List<HullModSpecAPI> result = new ArrayList<HullModSpecAPI>();

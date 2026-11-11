@@ -11,7 +11,7 @@ public class XPSModsPlugin extends BaseModPlugin {
 
     @Override
     public void onApplicationLoad() throws Exception {
-        XPSModsSettings.load();
+        XPSModsSettings.init();
         Global.getSettings().loadTexture(UpgradeIconOverlay.SPRITE);
         LunaRefitManager.addRefitButton(new XPSModsRefitButton());
         log.info("XP S-Mods: application loaded");

@@ -18,7 +18,7 @@ import org.apache.log4j.Logger;
 
 /**
  * Once a month (game time), notes which ships still exist and drops stored data for ships that haven't
- * been seen for pruneAfterDays. A ship counts as seen in the player fleet or in any market's storage,
+ * been seen for pruneAfterMonths. A ship counts as seen in the player fleet or in any market's storage,
  * across every location (so abandoned stations count too). Waiting rather than deleting at once keeps
  * data for ships that leave and come back with the same id: sold and bought back, stored, or lent.
  * Registered as a transient script, so it's not written to the save.
@@ -58,7 +58,10 @@ public class ShipDataPruner implements EveryFrameScript {
         Set<String> seen = existingShipIds();
         for (String id : seen) XPData.markSeen(id, now);
 
-        if (XPSModsSettings.pruneAfterDays <= 0) return;
+        if (XPSModsSettings.pruneAfterMonths <= 0) return;
+        // The clock has no "months since"; convert with the game's own days per month.
+        float daysPerMonth = clock.convertToDays(1f) / clock.convertToMonths(1f);
+        float limitDays = XPSModsSettings.pruneAfterMonths * daysPerMonth;
         int removed = 0;
         for (String id : XPData.allIds()) {
             if (seen.contains(id)) continue;
@@ -66,9 +69,9 @@ public class ShipDataPruner implements EveryFrameScript {
             if (last == null) {
                 // Data from before this feature: start its clock now instead of removing it.
                 XPData.markSeen(id, now);
-            } else if (clock.getElapsedDaysSince(last) > XPSModsSettings.pruneAfterDays) {
-                log.info(String.format("XP S-Mods: removed data for ship %s (XP %.0f, slots %d), not seen for %.0f days",
-                        id, XPData.getXP(id), XPData.getBoughtSlots(id), clock.getElapsedDaysSince(last)));
+            } else if (clock.getElapsedDaysSince(last) > limitDays) {
+                log.info(String.format("XP S-Mods: removed data for ship %s (XP %.0f, slots %d), not seen for %.1f months",
+                        id, XPData.getXP(id), XPData.getBoughtSlots(id), clock.getElapsedDaysSince(last) / daysPerMonth));
                 XPData.removeAll(id);
                 removed++;
             }

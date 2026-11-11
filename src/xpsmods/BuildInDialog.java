@@ -342,8 +342,8 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
         float total = 0f;
         for (String id : toBuild) total += SModRules.buildInCost(Global.getSettings().getHullModSpec(id), size);
         for (String id : toRemove) total += SModRules.removalCost(Global.getSettings().getHullModSpec(id), size);
-        for (String id : toEnhance) total += SModRules.buildInCost(Global.getSettings().getHullModSpec(id), size);
-        for (String id : toUnenhance) total += SModRules.removalCost(Global.getSettings().getHullModSpec(id), size);
+        for (String id : toEnhance) total += SModRules.enhanceCost(Global.getSettings().getHullModSpec(id), size);
+        for (String id : toUnenhance) total += SModRules.enhanceRemovalCost(Global.getSettings().getHullModSpec(id), size);
         return total;
     }
 
@@ -505,7 +505,13 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
             iconEl.addImage(spec.getSpriteName(), icon, icon, 0f);
             panel.addUIElement(iconEl).inTL(4f, 3f);
 
-            float cost = kind.removal ? SModRules.removalCost(spec, size) : SModRules.buildInCost(spec, size);
+            float cost;
+            switch (kind) {
+                case SMOD: cost = SModRules.removalCost(spec, size); break;
+                case ENHANCED: cost = SModRules.enhanceRemovalCost(spec, size); break;
+                case ENHANCE: cost = SModRules.enhanceCost(spec, size); break;
+                default: cost = SModRules.buildInCost(spec, size);
+            }
             name = label(spec.getDisplayName(), Misc.getHighlightColor(), colNameX, colNameW, Alignment.LMID);
             label(spec.getManufacturer(), Misc.getGrayColor(), colDesignX, colDesignW, Alignment.MID);
             op = label("", Misc.getGrayColor(), colOpX, colOpW, Alignment.MID);
