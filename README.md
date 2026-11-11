@@ -59,17 +59,12 @@ All of these can be changed in LunaLib's mod settings (F2 by default, then **Vet
 - **Don't use it together with Progressive S-Mods.** Both raise the same S-mod limit stat.
 - The refit button and the ship card icons reach into the game's refit UI through reflection. If a game update breaks that, they switch off and log an error. The entry in LunaLib's refit button list keeps working.
 
-## Building from source
+## AI use
 
-You need a **JDK 17**. The game ships only a JRE, which can't compile. On Arch-based systems: `sudo pacman -S jdk17-openjdk`.
+This mod was made with an AI coding assistant, Claude (Anthropic), used through Claude Code.
 
-1. Clone this repo into your `Starsector/mods/` folder. The build expects the game two folders up, and LunaLib at `mods/LunaLib-2.0.5/`. Edit `build.sh` if your LunaLib folder is named differently.
-2. Run:
-   ```
-   ./build.sh
-   ```
-
-The script compiles `src/` against the game's API and LunaLib into `jars/xpsmods.jar`. Set `JAVA_HOME` to use a JDK other than `/usr/lib/jvm/java-17-openjdk`.
+- **The author:** designed the mod, decided its features and balance, and tested every change in game.
+- **Claude:** wrote most of the code, based on the author's design, feedback and in-game screenshots. Commits it helped write carry a `Co-Authored-By: Claude` line.
 
 ## License
 
