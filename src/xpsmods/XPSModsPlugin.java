@@ -10,11 +10,14 @@ public class XPSModsPlugin extends BaseModPlugin {
 
     @Override
     public void onApplicationLoad() throws Exception {
+        XPSModsSettings.load();
         log.info("XP S-Mods: application loaded");
     }
 
     @Override
     public void onGameLoad(boolean newGame) {
-        log.info("XP S-Mods: game loaded (newGame=" + newGame + ")");
+        // Transient: not written to the save, so it is re-added on every load.
+        Global.getSector().addTransientListener(new XPBattleListener());
+        log.info("XP S-Mods: game loaded (newGame=" + newGame + "), battle listener registered");
     }
 }

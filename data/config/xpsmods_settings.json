@@ -1,0 +1,13 @@
+{
+	"baseDeployXP": 50,
+	"hullSizeMult": {
+		"FRIGATE": 1.0,
+		"DESTROYER": 1.5,
+		"CRUISER": 2.0,
+		"CAPITAL_SHIP": 3.0
+	},
+	"xpPerHullDamage": 0.05,
+	"killXP": 100,
+	"reserveShareOfAverage": 0.5,
+	"debugLog": true
+}

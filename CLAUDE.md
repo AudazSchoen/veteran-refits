@@ -4,7 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Milestone 1 (mod_info.json, jar build, empty mod plugin) is in place. Mod id `xpsmods`, plugin class `xpsmods.XPSModsPlugin`, Java sources under `src/`.
+Milestones 1 (mod_info.json, jar build, mod plugin) and 2 (settings + XP tracking) are implemented. Mod id `xpsmods`, plugin class `xpsmods.XPSModsPlugin`, Java sources under `src/xpsmods/`.
+
+- `XPSModsSettings` loads `data/config/xpsmods_settings.json` in `onApplicationLoad`. A missing key falls back to the default in the class and logs a warning.
+- `XPData` stores XP as a `HashMap<String, Float>` in sector persistent data under `"xpsmods_xp"`, keyed by `FleetMemberAPI.getId()`.
+- `XPBattleListener` (a transient `BaseCampaignEventListener`, added again in `onGameLoad`) awards XP in `reportPlayerEngagement`. Per-ship hull damage comes from `EngagementResultAPI.getLastCombatDamageData()`. Kill XP is split by each ship's share of the damage dealt to that enemy, because the API doesn't record who landed the kill. With `debugLog` on, it logs one line per ship.
+- Auto-resolve gotcha: `BattleAutoresolverPluginImpl`'s results always return `false` from `EngagementResultForFleetAPI.isPlayer()` and have no damage data, so kill XP is split evenly across the deployed ships there. Identify the player's side with `Misc.isPlayerOrCombinedContainingPlayer(side.getFleet())`.
 
 ## Build
 
