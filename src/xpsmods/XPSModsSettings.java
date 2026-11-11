@@ -6,6 +6,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
+import org.lwjgl.input.Keyboard;
 
 /** Tunable numbers from data/config/xpsmods_settings.json, loaded once at application load. */
 public final class XPSModsSettings {
@@ -20,6 +21,10 @@ public final class XPSModsSettings {
     public static float reserveShareOfAverage = 0.5f;
     public static boolean debugLog = true;
     public static int maxExtraSlots = 3;
+    public static float baseSlotXP = 1000f;
+    public static float slotCostMult = 2f;
+    /** LWJGL key code for the refit button; 0 means no hotkey. */
+    public static int refitHotkey = Keyboard.KEY_U;
     /** Testing only: when above 0, every ship is treated as having this many bought slots. */
     public static int debugGrantSlots = 0;
 
@@ -47,6 +52,17 @@ public final class XPSModsSettings {
         debugLog = json.optBoolean("debugLog", debugLog);
         maxExtraSlots = (int) getFloat(json, "maxExtraSlots", maxExtraSlots);
         debugGrantSlots = (int) getFloat(json, "debugGrantSlots", debugGrantSlots);
+        baseSlotXP = getFloat(json, "baseSlotXP", baseSlotXP);
+        slotCostMult = getFloat(json, "slotCostMult", slotCostMult);
+        if (json.has("refitHotkey")) {
+            String key = json.optString("refitHotkey", "").trim();
+            refitHotkey = key.isEmpty() ? 0 : Keyboard.getKeyIndex(key.toUpperCase());
+            if (!key.isEmpty() && refitHotkey == Keyboard.KEY_NONE) {
+                log.warn("XP S-Mods: unknown refitHotkey '" + key + "', hotkey disabled");
+            }
+        } else {
+            log.warn("XP S-Mods: settings missing refitHotkey, using default U");
+        }
 
         JSONObject sizes = json.optJSONObject("hullSizeMult");
         if (sizes == null) {

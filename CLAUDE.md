@@ -9,17 +9,21 @@ Milestones 1 (mod_info.json, jar build, mod plugin) and 2 (settings + XP trackin
 - `XPSModsSettings` loads `data/config/xpsmods_settings.json` in `onApplicationLoad`. A missing key falls back to the default in the class and logs a warning.
 - `XPData` stores XP as a `HashMap<String, Float>` in sector persistent data under `"xpsmods_xp"`, keyed by `FleetMemberAPI.getId()`.
 - `XPBattleListener` (a transient `BaseCampaignEventListener`, added again in `onGameLoad`) awards XP in `reportPlayerEngagement`. Per-ship hull damage comes from `EngagementResultAPI.getLastCombatDamageData()`. Kill XP is split by each ship's share of the damage dealt to that enemy, because the API doesn't record who landed the kill. With `debugLog` on, it logs one line per ship.
-- Milestone 3 (extra slots), not yet tested in the game:
+- Milestone 3 (extra slots):
   - `XPData` also stores bought slots under `"xpsmods_slots"` (String → Integer). `getSlotBonus` caps them at `maxExtraSlots`; the `debugGrantSlots` setting overrides them for testing.
   - `XPSlotsHullmod` (`data/hullmods/hull_mods.csv`, id `xpsmods_slots`) applies the bonus.
   - `SlotBonus.ensureHullmod(member)` adds the hullmod, copying shared stock/goal/empty-hull variants first. It's called on the player fleet in `onGameLoad`, and must also be called whenever slots are bought.
+- Milestone 4 (refit screen, not yet tested in the game). LunaLib is a required dependency.
+  - `XPSModsRefitButton` (a LunaLib `BaseRefitButton`) is the panel: XP, S-mod limit, buying slots. When it changes a ship, it must add the hullmod to the refit screen's `variant` as well as `member.getVariant()`, then call `refreshVariant()`, because LunaLib's refresh saves the refit variant back onto the ship.
+  - `RefitButtonHook` (a transient every-frame script) re-attaches a "Ship upgrades" button with the `refitHotkey` under vanilla "Build in" via `coreUI.getCurrentTab().getRefitPanel().getModDisplay().getMods().getPerm()`. It opens the panel the way LunaLib's `RefitButtonAdder` does (Exiled Sector's `RefitPanelLauncher` does the same). On any reflection failure it logs once and switches off until the game restarts.
+  - `UiReflect`: the game blocks `java.lang.reflect` in mod code, so reflection goes through `MethodHandles` on `Class.forName("java.lang.reflect.Method")`, the same as LunaLib. Reference sources: `../LunaLib-2.0.5/src`, `../Progressive S-Mods-1.2.0/src`. Exiled Sector (`../Exiled Sector-0.12.4`) only ships jars; read them with `javap -p -c -constants`.
 - Auto-resolve gotcha: `BattleAutoresolverPluginImpl`'s results always return `false` from `EngagementResultForFleetAPI.isPlayer()` and have no damage data, so kill XP is split evenly across the deployed ships there. Identify the player's side with `Misc.isPlayerOrCombinedContainingPlayer(side.getFleet())`.
 
 ## Build
 
 - `./build.sh` compiles everything under `src/` with `javac --release 17` against the game's jars (`starfarer.api.jar`, `json.jar`, `log4j`, `xstream`, `lwjgl`) and writes `jars/xpsmods.jar`. That jar is what the game loads (see `"jars"` in `mod_info.json`), so rebuild before launching. There are no tests.
 - `../../jre_linux` is a JRE only, with no `javac` or `jar`. The build uses the system JDK 17 (`jdk17-openjdk`, `/usr/lib/jvm/java-17-openjdk`). Set `JAVA_HOME` to use a different one.
-- New game jars needed at compile time go in the `for j in ...` list in `build.sh`. Library mod jars (for example LazyLib) need adding there too.
+- New game jars needed at compile time go in the `for j in ...` list in `build.sh`. Library mod jars go in the second loop (currently LunaLib), and must match `dependencies` in `mod_info.json`.
 - `build/` and `jars/xpsmods.jar` are build outputs and are git-ignored.
 
 ## Environment
@@ -66,7 +70,7 @@ Every number below goes in data/config/xpsmods_settings.json so it can be tuned 
 
 Where the player does it
 
-Milestone 1: a market interaction option added through data/campaign/rules.csv, "Ship upgrades (XP S-Mods)", available when docked at a market with a spaceport. It opens a dialog: pick a ship, see its XP, slots and cost, then buy a slot or build in or remove a hullmod. Later, only if it's practical: hook into the refit screen instead. Don't attempt this before milestone 1 works.
+In the refit screen, available anywhere (no market needed): a "Ship upgrades" button under the vanilla "Build in" button (hotkey `refitHotkey`, default U), plus an entry in LunaLib's refit button list. Both open the same panel for the selected ship: see its XP, slots and cost, then buy a slot, or build in or remove a hullmod. This replaced the original plan of a market dialog through rules.csv.
 
 Implementation notes (verify every API name in starfarer.api.zip before using it)
 
@@ -82,6 +86,6 @@ Milestones (one at a time, test in-game after each)
 - mod_info.json plus a jar build that compiles against starfarer.api.jar, with an empty mod plugin. The game loads it with no log errors.
 - Settings file plus XP tracking. A debug log line shows XP earned per ship after each battle.
 - Extra-slot stat bonus applied from stored data. The vanilla refit screen shows the raised limit.
-- Market dialog: view a ship's XP and buy slots.
-- Build in and remove S-mods for credits in the same dialog.
+- Refit screen panel and button under "Build in": view a ship's XP and buy slots.
+- Build in and remove S-mods for credits in the same panel.
 - Polish: tooltips, balance, edge cases (ship sold, scuttled, lost or recovered; d-mods; built-in hullmods; hullmods that can't be built in).

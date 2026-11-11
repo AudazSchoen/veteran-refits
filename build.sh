@@ -15,6 +15,10 @@ CP=""
 for j in starfarer.api.jar json.jar log4j-1.2.9.jar xstream-1.4.10.jar lwjgl.jar lwjgl_util.jar; do
     CP="$CP${CP:+:}$GAME/$j"
 done
+# Library mods (must match "dependencies" in mod_info.json).
+for j in "LunaLib-2.0.5/jars/LunaLib.jar"; do
+    CP="$CP:$GAME/mods/$j"
+done
 
 cd "$MOD_DIR"
 rm -rf build

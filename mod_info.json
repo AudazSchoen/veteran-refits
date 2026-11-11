@@ -7,5 +7,8 @@
 	"gameVersion": "0.98a-RC8",
 	"utility": "false",
 	"jars": ["jars/xpsmods.jar"],
-	"modPlugin": "xpsmods.XPSModsPlugin"
+	"modPlugin": "xpsmods.XPSModsPlugin",
+	"dependencies": [
+		{"id": "lunalib", "name": "LunaLib"}
+	]
 }

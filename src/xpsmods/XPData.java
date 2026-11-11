@@ -39,6 +39,13 @@ public final class XPData {
         return total;
     }
 
+    /** Removes XP (never below 0) and returns the new total. */
+    public static float spendXP(String memberId, float amount) {
+        float total = Math.max(0f, getXP(memberId) - amount);
+        XPData.<Float>map(XP_KEY).put(memberId, total);
+        return total;
+    }
+
     public static int getBoughtSlots(String memberId) {
         Integer slots = XPData.<Integer>map(SLOTS_KEY).get(memberId);
         return slots != null ? slots : 0;

@@ -29,6 +29,13 @@ public final class SlotBonus {
         member.updateStats();
     }
 
+    /** Adds the hullmod to a variant the caller already owns (for example the refit screen's copy). */
+    public static void ensureHullmod(ShipVariantAPI variant) {
+        if (variant != null && !variant.hasHullMod(XPSlotsHullmod.ID)) {
+            variant.addPermaMod(XPSlotsHullmod.ID, false);
+        }
+    }
+
     public static void ensureHullmodOnPlayerFleet() {
         CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
         if (fleet == null) return;

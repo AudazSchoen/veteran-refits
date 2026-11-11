@@ -10,6 +10,9 @@
 	"killXP": 100,
 	"reserveShareOfAverage": 0.5,
 	"maxExtraSlots": 3,
+	"baseSlotXP": 1000,
+	"slotCostMult": 2.0,
+	"refitHotkey": "U",
 	"debugLog": true,
 	"debugGrantSlots": 0
 }

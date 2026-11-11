@@ -2,6 +2,7 @@ package xpsmods;
 
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
+import lunalib.lunaRefit.LunaRefitManager;
 import org.apache.log4j.Logger;
 
 public class XPSModsPlugin extends BaseModPlugin {
@@ -11,6 +12,7 @@ public class XPSModsPlugin extends BaseModPlugin {
     @Override
     public void onApplicationLoad() throws Exception {
         XPSModsSettings.load();
+        LunaRefitManager.addRefitButton(new XPSModsRefitButton());
         log.info("XP S-Mods: application loaded");
     }
 
@@ -19,6 +21,8 @@ public class XPSModsPlugin extends BaseModPlugin {
         // Transient: not written to the save, so it is re-added on every load.
         Global.getSector().addTransientListener(new XPBattleListener());
         SlotBonus.ensureHullmodOnPlayerFleet();
+        // Transient: not saved, re-added on every load.
+        Global.getSector().addTransientScript(new RefitButtonHook());
         log.info("XP S-Mods: game loaded (newGame=" + newGame + "), battle listener registered");
     }
 }
