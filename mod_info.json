@@ -1,9 +1,9 @@
 {
 	"id": "xpsmods",
 	"name": "XP S-Mods",
-	"author": "rook",
-	"version": "0.1.0",
-	"description": "Ships earn XP in combat. XP raises a ship's S-mod limit, and S-mods are built in with credits instead of story points.",
+	"author": "AudazSchoen",
+	"version": "1.0.0",
+	"description": "Ships earn XP in combat. Spend a ship's XP in the refit screen to raise its S-mod limit, then build in or remove S-mods with credits while docked at a market. Vanilla story-point build-in still works. All values are configurable in LunaLib's mod settings. Requires LunaLib.",
 	"gameVersion": "0.98a-RC8",
 	"utility": "false",
 	"jars": ["jars/xpsmods.jar"],
