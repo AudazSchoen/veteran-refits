@@ -13,8 +13,8 @@ Milestones 1 (mod_info.json, jar build, mod plugin) and 2 (settings + XP trackin
   - `XPData` also stores bought slots under `"xpsmods_slots"` (String → Integer). `getSlotBonus` caps them at `maxExtraSlots`; the `debugGrantSlots` setting overrides them for testing.
   - `XPSlotsHullmod` (`data/hullmods/hull_mods.csv`, id `xpsmods_slots`) applies the bonus.
   - `SlotBonus.ensureHullmod(member)` adds the hullmod, copying shared stock/goal/empty-hull variants first. It's called on the player fleet in `onGameLoad`, and must also be called whenever slots are bought.
-- Milestone 4 (refit screen, not yet tested in the game). LunaLib is a required dependency.
-  - `XPSModsRefitButton` (a LunaLib `BaseRefitButton`) is the panel: XP, S-mod limit, buying slots. When it changes a ship, it must add the hullmod to the refit screen's `variant` as well as `member.getVariant()`, then call `refreshVariant()`, because LunaLib's refresh saves the refit variant back onto the ship.
+- Milestones 4 and 5 (refit screen; milestone 5 not yet tested in the game). LunaLib is a required dependency.
+  - `XPSModsRefitButton` (a LunaLib `BaseRefitButton`) is the panel: XP, S-mod limit, buying slots, and building in or removing S-mods for credits. The build-in list and S-mod count follow vanilla (`getNonBuiltInHullmods()` minus hidden, d-mod, perma and `no_build_in` mods; `Misc.getCurrSpecialMods`). Built-in hullmod enhancement (`getSModdedBuiltIns`) is deferred. When it changes a ship, it must add the hullmod to the refit screen's `variant` as well as `member.getVariant()`, then call `refreshVariant()`, because LunaLib's refresh saves the refit variant back onto the ship.
   - `RefitButtonHook` (a transient every-frame script) re-attaches a "Ship upgrades" button with the `refitHotkey` under vanilla "Build in" via `coreUI.getCurrentTab().getRefitPanel().getModDisplay().getMods().getPerm()`. It opens the panel the way LunaLib's `RefitButtonAdder` does (Exiled Sector's `RefitPanelLauncher` does the same). On any reflection failure it logs once and switches off until the game restarts.
   - `UiReflect`: the game blocks `java.lang.reflect` in mod code, so reflection goes through `MethodHandles` on `Class.forName("java.lang.reflect.Method")`, the same as LunaLib. Reference sources: `../LunaLib-2.0.5/src`, `../Progressive S-Mods-1.2.0/src`. Exiled Sector (`../Exiled Sector-0.12.4`) only ships jars; read them with `javap -p -c -constants`.
 - Auto-resolve gotcha: `BattleAutoresolverPluginImpl`'s results always return `false` from `EngagementResultForFleetAPI.isPlayer()` and have no damage data, so kill XP is split evenly across the deployed ships there. Identify the player's side with `Misc.isPlayerOrCombinedContainingPlayer(side.getFleet())`.
@@ -63,14 +63,14 @@ Every number below goes in data/config/xpsmods_settings.json so it can be tuned 
 
 - XP gain: a base amount for being deployed, plus XP based on damage dealt and ships disabled or destroyed, scaled by hull size. Disabled or retreated ships still earn the base amount. Mothballed ships earn nothing. undeployed reserve and civilian ships earn a configurable average of xp earned by deployed ships. 
 - Slot cost: baseSlotXP * slotCostMult^(extraSlotsBought), for example 1000 × 2.0^n. Default cap: +3 extra slots on top of vanilla.
-- Build-in cost: creditsPerOP * hullmod OP cost * hullSizeMult, with a flat minimum.
-- Removing S-mods: allowed for a smaller credit fee (setting allowRemoval). The slot stays bought.
+- Build-in cost: max(minBuildInCredits, creditsPerOP * hullmod OP cost * buildInSizeMult[size]). `buildInSizeMult` is separate from the XP `hullSizeMult`.
+- Removing S-mods: allowed (setting allowRemoval) for removalFeeFraction of the build-in cost, with the same minimum. The hullmod is removed from the ship entirely (`removePermaMod` + `removeMod`), not left as a normal hullmod. The slot stays bought.
 - Vanilla story-point build-in stays untouched. This mod adds a second way to build in hullmods.
 - Optional setting: show a ship's XP in its tooltip or in the refit screen if that's feasible.
 
 Where the player does it
 
-In the refit screen, available anywhere (no market needed): a "Ship upgrades" button under the vanilla "Build in" button (hotkey `refitHotkey`, default U), plus an entry in LunaLib's refit button list. Both open the same panel for the selected ship: see its XP, slots and cost, then buy a slot, or build in or remove a hullmod. This replaced the original plan of a market dialog through rules.csv.
+In the refit screen there's a "Ship upgrades" button under the vanilla "Build in" button (hotkey `refitHotkey`, default U), plus an entry in LunaLib's refit button list. Both open the same panel for the selected ship: see its XP, slots and costs, then buy a slot, or build in or remove a hullmod. Buying slots with XP works anywhere. Building in and removing S-mods for credits needs the player docked at a market (LunaLib's `market` is non-null). This replaced the original plan of a market dialog through rules.csv.
 
 Implementation notes (verify every API name in starfarer.api.zip before using it)
 

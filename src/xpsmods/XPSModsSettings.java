@@ -23,6 +23,10 @@ public final class XPSModsSettings {
     public static int maxExtraSlots = 3;
     public static float baseSlotXP = 1000f;
     public static float slotCostMult = 2f;
+    public static float creditsPerOP = 1500f;
+    public static float minBuildInCredits = 10000f;
+    public static boolean allowRemoval = true;
+    public static float removalFeeFraction = 0.25f;
     /** LWJGL key code for the refit button; 0 means no hotkey. */
     public static int refitHotkey = Keyboard.KEY_U;
     /** Testing only: when above 0, every ship is treated as having this many bought slots. */
@@ -36,7 +40,20 @@ public final class XPSModsSettings {
         hullSizeMult.put(HullSize.CAPITAL_SHIP, 3f);
     }
 
+    private static final Map<HullSize, Float> buildInSizeMult = new EnumMap<HullSize, Float>(HullSize.class);
+    static {
+        buildInSizeMult.put(HullSize.FRIGATE, 1f);
+        buildInSizeMult.put(HullSize.DESTROYER, 1.25f);
+        buildInSizeMult.put(HullSize.CRUISER, 1.5f);
+        buildInSizeMult.put(HullSize.CAPITAL_SHIP, 2f);
+    }
+
     private XPSModsSettings() {}
+
+    public static float buildInSizeMult(HullSize size) {
+        Float mult = buildInSizeMult.get(size);
+        return mult != null ? mult : 1f;
+    }
 
     public static float hullSizeMult(HullSize size) {
         Float mult = hullSizeMult.get(size);
@@ -54,6 +71,11 @@ public final class XPSModsSettings {
         debugGrantSlots = (int) getFloat(json, "debugGrantSlots", debugGrantSlots);
         baseSlotXP = getFloat(json, "baseSlotXP", baseSlotXP);
         slotCostMult = getFloat(json, "slotCostMult", slotCostMult);
+        creditsPerOP = getFloat(json, "creditsPerOP", creditsPerOP);
+        minBuildInCredits = getFloat(json, "minBuildInCredits", minBuildInCredits);
+        allowRemoval = json.optBoolean("allowRemoval", allowRemoval);
+        removalFeeFraction = getFloat(json, "removalFeeFraction", removalFeeFraction);
+        loadSizeMults(json, "buildInSizeMult", buildInSizeMult);
         if (json.has("refitHotkey")) {
             String key = json.optString("refitHotkey", "").trim();
             refitHotkey = key.isEmpty() ? 0 : Keyboard.getKeyIndex(key.toUpperCase());
@@ -64,15 +86,19 @@ public final class XPSModsSettings {
             log.warn("XP S-Mods: settings missing refitHotkey, using default U");
         }
 
-        JSONObject sizes = json.optJSONObject("hullSizeMult");
-        if (sizes == null) {
-            log.warn("XP S-Mods: settings missing hullSizeMult, using defaults");
-        } else {
-            for (HullSize size : new HullSize[] {HullSize.FRIGATE, HullSize.DESTROYER, HullSize.CRUISER, HullSize.CAPITAL_SHIP}) {
-                hullSizeMult.put(size, getFloat(sizes, size.name(), hullSizeMult.get(size)));
-            }
-        }
+        loadSizeMults(json, "hullSizeMult", hullSizeMult);
         log.info("XP S-Mods: settings loaded");
+    }
+
+    private static void loadSizeMults(JSONObject json, String key, Map<HullSize, Float> into) {
+        JSONObject sizes = json.optJSONObject(key);
+        if (sizes == null) {
+            log.warn("XP S-Mods: settings missing " + key + ", using defaults");
+            return;
+        }
+        for (HullSize size : new HullSize[] {HullSize.FRIGATE, HullSize.DESTROYER, HullSize.CRUISER, HullSize.CAPITAL_SHIP}) {
+            into.put(size, getFloat(sizes, size.name(), into.get(size)));
+        }
     }
 
     private static float getFloat(JSONObject json, String key, float fallback) {

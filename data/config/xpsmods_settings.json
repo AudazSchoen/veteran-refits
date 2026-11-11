@@ -13,6 +13,16 @@
 	"baseSlotXP": 1000,
 	"slotCostMult": 2.0,
 	"refitHotkey": "U",
+	"creditsPerOP": 1500,
+	"minBuildInCredits": 10000,
+	"buildInSizeMult": {
+		"FRIGATE": 1.0,
+		"DESTROYER": 1.25,
+		"CRUISER": 1.5,
+		"CAPITAL_SHIP": 2.0
+	},
+	"allowRemoval": true,
+	"removalFeeFraction": 0.25,
 	"debugLog": true,
 	"debugGrantSlots": 0
 }
