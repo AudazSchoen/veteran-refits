@@ -80,6 +80,45 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
     /** Pending changes, applied on Confirm. */
     private final Set<String> toBuild = new LinkedHashSet<String>();
     private final Set<String> toRemove = new LinkedHashSet<String>();
+    private final Set<String> toEnhance = new LinkedHashSet<String>();
+    private final Set<String> toUnenhance = new LinkedHashSet<String>();
+
+    /** What a table row is, and so what ticking it does. */
+    private enum Kind {
+        /** Current S-mod; ticking removes it. */
+        SMOD(true),
+        /** Built-in hullmod already enhanced; ticking removes the enhancement. */
+        ENHANCED(true),
+        /** Installed hullmod; ticking builds it in (uses a slot). */
+        BUILD(false),
+        /** Built-in hullmod with an S-mod effect; ticking enhances it (no slot, like vanilla). */
+        ENHANCE(false);
+
+        final boolean removal;
+
+        Kind(boolean removal) {
+            this.removal = removal;
+        }
+    }
+
+    private Set<String> picks(Kind kind) {
+        switch (kind) {
+            case SMOD: return toRemove;
+            case ENHANCED: return toUnenhance;
+            case BUILD: return toBuild;
+            default: return toEnhance;
+        }
+    }
+
+    private boolean anyPicked() {
+        return !toBuild.isEmpty() || !toRemove.isEmpty() || !toEnhance.isEmpty() || !toUnenhance.isEmpty();
+    }
+
+    private static Set<String> union(Set<String> a, Set<String> b) {
+        Set<String> out = new LinkedHashSet<String>(a);
+        out.addAll(b);
+        return out;
+    }
 
     private CustomPanelAPI root;
     private PositionAPI rootPos;
@@ -136,7 +175,6 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
 
     /** Whether rows can be ticked at all right now. */
     private String rowsLockedReason() {
-        if (SModRules.isModule(member, variant)) return "Select the main hull to change its S-mods.";
         if (market == null) return "Dock at a market to build in or remove S-mods.";
         return null;
     }
@@ -158,19 +196,23 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
         boolean locked = rowsLockedReason() != null;
 
         List<HullModSpecAPI> sMods = SModRules.currentSMods(variant);
+        List<HullModSpecAPI> enhanced = SModRules.enhancedBuiltIns(variant);
         List<HullModSpecAPI> candidates = SModRules.buildInCandidates(variant);
+        List<HullModSpecAPI> enhanceable = SModRules.enhanceCandidates(variant);
         // Drop pending picks that no longer apply (for example after a confirm).
-        toBuild.retainAll(ids(candidates));
         toRemove.retainAll(ids(sMods));
+        toUnenhance.retainAll(ids(enhanced));
+        toBuild.retainAll(ids(candidates));
+        toEnhance.retainAll(ids(enhanceable));
 
-        for (HullModSpecAPI spec : sMods) {
-            if (!XPSModsSettings.allowRemoval) break;
-            list.addCustom(new Row(spec, true, locked).panel, 0f);
+        int rows = 0;
+        if (XPSModsSettings.allowRemoval) {
+            for (HullModSpecAPI spec : sMods) { list.addCustom(new Row(spec, Kind.SMOD, locked).panel, 0f); rows++; }
+            for (HullModSpecAPI spec : enhanced) { list.addCustom(new Row(spec, Kind.ENHANCED, locked).panel, 0f); rows++; }
         }
-        for (HullModSpecAPI spec : candidates) {
-            list.addCustom(new Row(spec, false, locked).panel, 0f);
-        }
-        if (sMods.isEmpty() && candidates.isEmpty()) {
+        for (HullModSpecAPI spec : candidates) { list.addCustom(new Row(spec, Kind.BUILD, locked).panel, 0f); rows++; }
+        for (HullModSpecAPI spec : enhanceable) { list.addCustom(new Row(spec, Kind.ENHANCE, locked).panel, 0f); rows++; }
+        if (rows == 0) {
             list.addPara("No installed hullmods can be built in.", Misc.getGrayColor(), PAD);
         }
         root.addUIElement(list).inTL(tableX + TABLE_GAP - LIST_INSET, listTop);
@@ -221,7 +263,7 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
         slots.addPara("Bought: %s of %s", 6f, hl, String.valueOf(bought), String.valueOf(maxExtra));
         String slotReason = null;
         if (SModRules.isModule(member, variant)) {
-            slotReason = "Select the main hull to buy slots.";
+            slotReason = "Slots are shared with the main hull; select it to buy one.";
         } else if (bought >= maxExtra) {
             slotReason = "Maximum extra slots reached.";
         } else {
@@ -256,7 +298,7 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
         add(buttons).inTL(0f, bottomY);
 
         TooltipMakerAPI status = element();
-        boolean anyPicked = !toBuild.isEmpty() || !toRemove.isEmpty();
+        boolean anyPicked = anyPicked();
         if (anyPicked) {
             status.addPara("Total: %s credits", 0f, total > credits ? bad : hl, Misc.getWithDGS(Math.round(total)));
         }
@@ -267,8 +309,8 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
         // S-mod bonuses of every ticked hullmod, one under the other like vanilla; hullmods without a
         // bonus are left out. Scrolls if they don't fit above the bottom stack.
         // Bonuses being lost to a removal follow, the same way but in red.
-        List<HullModSpecAPI> gained = withSModBonus(toBuild);
-        List<HullModSpecAPI> lost = withSModBonus(toRemove);
+        List<HullModSpecAPI> gained = withSModBonus(union(toBuild, toEnhance));
+        List<HullModSpecAPI> lost = withSModBonus(union(toRemove, toUnenhance));
         float space = bottomY - 10f - y;
         if ((!gained.isEmpty() || !lost.isEmpty()) && space > 40f) {
             TooltipMakerAPI bonuses = rightPanel.createUIElement(RIGHT_W, space, true);
@@ -290,7 +332,7 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
     private String confirmBlockedReason(int usedAfter, int limit, float total, float credits) {
         String locked = rowsLockedReason();
         if (locked != null) return locked;
-        if (toBuild.isEmpty() && toRemove.isEmpty()) return "Select hullmods to build in or remove.";
+        if (!anyPicked()) return "Select hullmods to build in or remove.";
         if (usedAfter > limit) return "Not enough free S-mod slots (" + (usedAfter - limit) + " short).";
         if (total > credits) return "Not enough credits.";
         return null;
@@ -300,6 +342,8 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
         float total = 0f;
         for (String id : toBuild) total += SModRules.buildInCost(Global.getSettings().getHullModSpec(id), size);
         for (String id : toRemove) total += SModRules.removalCost(Global.getSettings().getHullModSpec(id), size);
+        for (String id : toEnhance) total += SModRules.buildInCost(Global.getSettings().getHullModSpec(id), size);
+        for (String id : toUnenhance) total += SModRules.removalCost(Global.getSettings().getHullModSpec(id), size);
         return total;
     }
 
@@ -358,22 +402,30 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
             variant.addPermaMod(id, true);
             log.info("XP S-Mods: " + member.getShipName() + " built in " + id);
         }
+        // Enhancing a built-in: vanilla's isSMod() reads this list (same as Progressive S-Mods).
+        for (String id : toUnenhance) {
+            variant.getSModdedBuiltIns().remove(id);
+            log.info("XP S-Mods: " + member.getShipName() + " removed enhancement of built-in " + id);
+        }
+        for (String id : toEnhance) {
+            variant.getSModdedBuiltIns().add(id);
+            log.info("XP S-Mods: " + member.getShipName() + " enhanced built-in " + id);
+        }
         credits().subtract(total);
         log.info(String.format("XP S-Mods: %s paid %.0f credits", member.getShipName(), total));
         member.updateStats();
         owner.refreshVariant();
-        Global.getSoundPlayer().playUISound(toBuild.isEmpty() ? "ui_objective_constructed" : "ui_acquired_hullmod", 1f, 1f);
+        boolean added = !toBuild.isEmpty() || !toEnhance.isEmpty();
+        Global.getSoundPlayer().playUISound(added ? "ui_acquired_hullmod" : "ui_objective_constructed", 1f, 1f);
         toBuild.clear();
         toRemove.clear();
+        toEnhance.clear();
+        toUnenhance.clear();
     }
 
     void rowToggled(Row row, boolean checked) {
         String id = row.spec.getId();
-        if (row.isSMod) {
-            if (checked) toRemove.add(id); else toRemove.remove(id);
-        } else {
-            if (checked) toBuild.add(id); else toBuild.remove(id);
-        }
+        if (checked) picks(row.kind).add(id); else picks(row.kind).remove(id);
         row.refresh();
         buildRight();
     }
@@ -428,22 +480,22 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
     /** A selectable table row: area checkbox underneath, icon and column labels on top. */
     private final class Row extends BaseCustomUIPanelPlugin {
         final HullModSpecAPI spec;
-        final boolean isSMod;
+        final Kind kind;
         final CustomPanelAPI panel;
         private final ButtonAPI box;
         private final LabelAPI name, op, status;
         private PositionAPI pos;
 
-        Row(HullModSpecAPI spec, boolean isSMod, boolean locked) {
+        Row(HullModSpecAPI spec, Kind kind, boolean locked) {
             this.spec = spec;
-            this.isSMod = isSMod;
+            this.kind = kind;
             FactionAPI faction = Global.getSector().getPlayerFaction();
             panel = root.createCustomPanel(contentW, ROW_H, this);
 
             TooltipMakerAPI boxEl = panel.createUIElement(contentW, ROW_H, false);
             box = boxEl.addAreaCheckbox("", "row", faction.getBaseUIColor(), faction.getDarkUIColor(),
                     faction.getBrightUIColor(), contentW, ROW_H, 0f);
-            box.setChecked(isSMod ? toRemove.contains(spec.getId()) : toBuild.contains(spec.getId()));
+            box.setChecked(picked());
             box.setEnabled(!locked);
             boxEl.addTooltipToPrevious(new HullModTooltip(spec), TooltipLocation.RIGHT);
             panel.addUIElement(boxEl).inTL(0f, 0f);
@@ -453,7 +505,7 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
             iconEl.addImage(spec.getSpriteName(), icon, icon, 0f);
             panel.addUIElement(iconEl).inTL(4f, 3f);
 
-            float cost = isSMod ? SModRules.removalCost(spec, size) : SModRules.buildInCost(spec, size);
+            float cost = kind.removal ? SModRules.removalCost(spec, size) : SModRules.buildInCost(spec, size);
             name = label(spec.getDisplayName(), Misc.getHighlightColor(), colNameX, colNameW, Alignment.LMID);
             label(spec.getManufacturer(), Misc.getGrayColor(), colDesignX, colDesignW, Alignment.MID);
             op = label("", Misc.getGrayColor(), colOpX, colOpW, Alignment.MID);
@@ -470,20 +522,34 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
             return l;
         }
 
-        private boolean building() {
-            return !isSMod && toBuild.contains(spec.getId());
+        private boolean picked() {
+            return picks(kind).contains(spec.getId());
         }
 
         private boolean removing() {
-            return isSMod && toRemove.contains(spec.getId());
+            return kind.removal && picked();
         }
 
-        /** Vanilla shows "n/a" OP once a hullmod is (or will be) built in. */
+        /** Lock icon: an S-mod or enhanced built-in that stays, or one about to be added. */
+        private boolean showLock() {
+            return kind.removal ? !picked() : picked();
+        }
+
+        /** OP: "n/a" once a hullmod is (or will be) an S-mod, like vanilla; built-ins cost no OP. */
         void refresh() {
-            boolean builtIn = (isSMod && !removing()) || building();
-            op.setText(builtIn ? "n/a" : String.valueOf(spec.getCostFor(size)));
+            boolean hullBuiltIn = kind == Kind.ENHANCE || kind == Kind.ENHANCED;
+            boolean sModded = (kind == Kind.SMOD && !removing()) || (kind == Kind.BUILD && picked());
+            op.setText(hullBuiltIn ? "-" : sModded ? "n/a" : String.valueOf(spec.getCostFor(size)));
             name.setColor(removing() ? Misc.getNegativeHighlightColor() : Misc.getHighlightColor());
-            status.setText(removing() ? "Remove" : "");
+            if (removing()) {
+                status.setText("Remove");
+                status.setColor(Misc.getNegativeHighlightColor());
+            } else if (kind == Kind.ENHANCE && !picked()) {
+                status.setText("Built-in");
+                status.setColor(Misc.getGrayColor());
+            } else {
+                status.setText("");
+            }
         }
 
         @Override
@@ -500,8 +566,9 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
         @Override
         public void render(float alphaMult) {
             if (pos == null || removing()) return;
-            boolean builtIn = isSMod || building();
-            SpriteAPI icon = Global.getSettings().getSprite(builtIn ? LOCK_SPRITE : CHECK_SPRITE);
+            boolean lock = showLock();
+            if (!lock && kind != Kind.BUILD) return; // unticked built-in: the "Built-in" label says it
+            SpriteAPI icon = Global.getSettings().getSprite(lock ? LOCK_SPRITE : CHECK_SPRITE);
             if (icon == null) return;
             icon.setSize(20f, 20f);
             icon.setColor(Misc.getHighlightColor());

@@ -24,6 +24,7 @@ public class XPSModsPlugin extends BaseModPlugin {
         SlotBonus.ensureHullmodOnPlayerFleet();
         // Transient: not saved, re-added on every load.
         Global.getSector().addTransientScript(new RefitButtonHook());
+        Global.getSector().addTransientScript(new ShipDataPruner());
         log.info("XP S-Mods: game loaded (newGame=" + newGame + "), battle listener registered");
     }
 }

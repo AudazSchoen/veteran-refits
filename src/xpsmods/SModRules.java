@@ -54,6 +54,36 @@ final class SModRules {
         return result;
     }
 
+    /**
+     * Built-in hullmods that can be enhanced by building them in: a real S-mod effect, not yet
+     * enhanced (same check as vanilla's Misc.hasSModdableBuiltIns and Progressive S-Mods).
+     * Enhancing doesn't count against the S-mod limit (vanilla's Misc.isSpecialMod skips built-ins).
+     */
+    static List<HullModSpecAPI> enhanceCandidates(ShipVariantAPI variant) {
+        List<HullModSpecAPI> result = new ArrayList<HullModSpecAPI>();
+        if (!Misc.CAN_SMOD_BUILT_IN || variant.getHullSpec() == null) return result;
+        for (String id : variant.getHullSpec().getBuiltInMods()) {
+            HullModSpecAPI spec = Global.getSettings().getHullModSpec(id);
+            if (spec == null || spec.isHidden() || spec.isHiddenEverywhere() || spec.hasTag(Tags.HULLMOD_DMOD)) continue;
+            if (variant.getSModdedBuiltIns().contains(id)) continue;
+            if (!spec.getEffect().hasSModEffect() || spec.getEffect().isSModEffectAPenalty()) continue;
+            result.add(spec);
+        }
+        sortByName(result);
+        return result;
+    }
+
+    /** Built-in hullmods that have already been enhanced. */
+    static List<HullModSpecAPI> enhancedBuiltIns(ShipVariantAPI variant) {
+        List<HullModSpecAPI> result = new ArrayList<HullModSpecAPI>();
+        for (String id : variant.getSModdedBuiltIns()) {
+            HullModSpecAPI spec = Global.getSettings().getHullModSpec(id);
+            if (spec != null) result.add(spec);
+        }
+        sortByName(result);
+        return result;
+    }
+
     /** The ship's S-mod limit, including bought slots once the hidden hullmod is on it. */
     static int sModLimit(FleetMemberAPI member) {
         return Math.round(member.getStats().getDynamic().getMod(Stats.MAX_PERMANENT_HULLMODS_MOD)

@@ -3,16 +3,19 @@ package xpsmods;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.SectorAPI;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * Per-ship XP and bought S-mod slots, keyed by FleetMemberAPI.getId(). Stored in the sector's
- * persistent data as plain HashMaps of String to Float / Integer.
+ * Per-ship XP, bought S-mod slots and last-seen time, keyed by FleetMemberAPI.getId(). Stored in the
+ * sector's persistent data as plain HashMaps of String to Float / Integer / Long.
  */
 public final class XPData {
 
     private static final String XP_KEY = "xpsmods_xp";
     private static final String SLOTS_KEY = "xpsmods_slots";
+    private static final String LAST_SEEN_KEY = "xpsmods_lastSeen";
 
     private XPData() {}
 
@@ -53,6 +56,32 @@ public final class XPData {
 
     public static void setBoughtSlots(String memberId, int slots) {
         XPData.<Integer>map(SLOTS_KEY).put(memberId, slots);
+    }
+
+    /** Records that the ship still exists (game timestamp). */
+    public static void markSeen(String memberId, long timestamp) {
+        XPData.<Long>map(LAST_SEEN_KEY).put(memberId, timestamp);
+    }
+
+    /** Game timestamp the ship was last seen, or null if never recorded. */
+    public static Long getLastSeen(String memberId) {
+        return XPData.<Long>map(LAST_SEEN_KEY).get(memberId);
+    }
+
+    /** Every ship id we hold any data for. */
+    public static Set<String> allIds() {
+        Set<String> ids = new LinkedHashSet<String>();
+        ids.addAll(XPData.<Float>map(XP_KEY).keySet());
+        ids.addAll(XPData.<Integer>map(SLOTS_KEY).keySet());
+        ids.addAll(XPData.<Long>map(LAST_SEEN_KEY).keySet());
+        return ids;
+    }
+
+    /** Drops everything stored for the ship. */
+    public static void removeAll(String memberId) {
+        XPData.<Float>map(XP_KEY).remove(memberId);
+        XPData.<Integer>map(SLOTS_KEY).remove(memberId);
+        XPData.<Long>map(LAST_SEEN_KEY).remove(memberId);
     }
 
     /** XP cost of the next slot: baseSlotXP * slotCostMult ^ slotsAlreadyBought. */

@@ -32,6 +32,8 @@ public final class XPSModsSettings {
     /** Testing only: when above 0, every ship is treated as having this many bought slots. */
     public static int debugGrantSlots = 0;
     public static boolean showUpgradeIcon = true;
+    /** Drop stored data for ships not seen (fleet or any storage) for this many days; 0 = never. */
+    public static int pruneAfterDays = 365;
 
     private static final Map<HullSize, Float> hullSizeMult = new EnumMap<HullSize, Float>(HullSize.class);
     static {
@@ -71,6 +73,7 @@ public final class XPSModsSettings {
         maxExtraSlots = (int) getFloat(json, "maxExtraSlots", maxExtraSlots);
         debugGrantSlots = (int) getFloat(json, "debugGrantSlots", debugGrantSlots);
         showUpgradeIcon = json.optBoolean("showUpgradeIcon", showUpgradeIcon);
+        pruneAfterDays = (int) getFloat(json, "pruneAfterDays", pruneAfterDays);
         baseSlotXP = getFloat(json, "baseSlotXP", baseSlotXP);
         slotCostMult = getFloat(json, "slotCostMult", slotCostMult);
         creditsPerOP = getFloat(json, "creditsPerOP", creditsPerOP);

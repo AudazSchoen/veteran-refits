@@ -2,6 +2,7 @@ package xpsmods;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.BaseCampaignEventListener;
+import com.fs.starfarer.api.campaign.BattleAPI;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CombatDamageData;
 import com.fs.starfarer.api.campaign.CombatDamageData.DamageToFleetMember;
@@ -23,8 +24,45 @@ public class XPBattleListener extends BaseCampaignEventListener {
 
     private static final Logger log = Global.getLogger(XPBattleListener.class);
 
+    /**
+     * Player ships disabled or destroyed during this battle's engagements (id -> name). Whether they're
+     * really lost is only known when the battle ends, after the player has (or hasn't) recovered them.
+     */
+    private final Map<String, String> casualties = new LinkedHashMap<String, String>();
+
     public XPBattleListener() {
         super(false);
+    }
+
+    /**
+     * Fired by vanilla once the battle is over and the player has left the post-battle dialog, so after
+     * ship recovery (FleetInteractionDialogPluginImpl: RECOVERY_SELECT, then
+     * applyAfterBattleEffectsIfThereWasABattle). Casualties that aren't back in the fleet are gone for
+     * good: destroyed, not recovered, or lost on a retreat.
+     */
+    @Override
+    public void reportBattleOccurred(CampaignFleetAPI primaryWinner, BattleAPI battle) {
+        if (casualties.isEmpty() || battle == null) return;
+        if (!battle.isPlayerInvolved() && !battle.isPlayerInvolvedAtStart()) return;
+        try {
+            CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
+            Set<String> inFleet = new HashSet<String>();
+            if (playerFleet != null) {
+                for (FleetMemberAPI m : playerFleet.getFleetData().getMembersListCopy()) inFleet.add(m.getId());
+            }
+            for (Map.Entry<String, String> e : casualties.entrySet()) {
+                if (inFleet.contains(e.getKey())) {
+                    if (XPSModsSettings.debugLog) log.info("XP S-Mods: " + e.getValue() + " was recovered, data kept");
+                } else {
+                    XPData.removeAll(e.getKey());
+                    log.info("XP S-Mods: " + e.getValue() + " (id " + e.getKey() + ") was lost in battle, data removed");
+                }
+            }
+        } catch (Exception ex) {
+            log.error("XP S-Mods: failed to check battle losses", ex);
+        } finally {
+            casualties.clear();
+        }
     }
 
     @Override
@@ -53,24 +91,23 @@ public class XPBattleListener extends BaseCampaignEventListener {
             return;
         }
 
-        // Only the player's own ships earn XP, not allies.
+        // Only the player's own ships earn XP, not allies. Disabled ships may already have been taken out
+        // of the fleet, so a ship we hold data for also counts as ours (only player ships ever get data).
         List<FleetMemberAPI> fleetMembers = playerFleet.getFleetData().getMembersListCopy();
         Set<String> playerIds = new HashSet<String>();
         for (FleetMemberAPI m : fleetMembers) playerIds.add(m.getId());
+        playerIds.addAll(XPData.allIds());
 
-        // Deployed ships, including ones destroyed in this engagement (no longer in the fleet).
+        // Deployed ships, including ones disabled or destroyed in this engagement.
         Map<String, FleetMemberAPI> deployed = new LinkedHashMap<String, FleetMemberAPI>();
-        Set<String> destroyedIds = new HashSet<String>();
         addOwn(deployed, player.getDeployed(), playerIds, playerFleet);
         addOwn(deployed, player.getRetreated(), playerIds, playerFleet);
-        addOwn(deployed, player.getDisabled(), playerIds, playerFleet);
-        for (FleetMemberAPI m : player.getDestroyed()) {
-            if (m == null || m.isFighterWing()) continue;
-            if (playerIds.contains(m.getId()) || isOwnedBy(m, playerFleet)) {
-                deployed.put(m.getId(), m);
-                destroyedIds.add(m.getId());
-            }
-        }
+        Map<String, FleetMemberAPI> knockedOut = new LinkedHashMap<String, FleetMemberAPI>();
+        addOwn(knockedOut, player.getDisabled(), playerIds, playerFleet);
+        addOwn(knockedOut, player.getDestroyed(), playerIds, playerFleet);
+        deployed.putAll(knockedOut);
+        // Lost or not is decided when the battle ends (reportBattleOccurred).
+        for (FleetMemberAPI m : knockedOut.values()) casualties.put(m.getId(), m.getShipName());
         if (deployed.isEmpty()) return;
 
         // Enemy ships knocked out this engagement, for kill XP.
@@ -128,12 +165,10 @@ public class XPBattleListener extends BaseCampaignEventListener {
             float earned = base + damageXP + killXP;
             totalDeployedXP += earned;
 
-            if (destroyedIds.contains(m.getId())) {
-                debug(m, earned, -1f, "destroyed, not stored");
-            } else {
-                float newTotal = XPData.addXP(m.getId(), earned);
-                debug(m, earned, newTotal, String.format("base %.0f, damage %.0f, kills %.0f", base, damageXP, killXP));
-            }
+            float newTotal = XPData.addXP(m.getId(), earned);
+            String detail = String.format("base %.0f, damage %.0f, kills %.0f", base, damageXP, killXP);
+            if (knockedOut.containsKey(m.getId())) detail += ", knocked out";
+            debug(m, earned, newTotal, detail);
         }
 
         // Undeployed ships (reserve and civilian) get a share of the deployed average. Mothballed get nothing.

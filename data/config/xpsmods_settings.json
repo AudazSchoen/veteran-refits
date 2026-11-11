@@ -24,6 +24,7 @@
 	"allowRemoval": true,
 	"removalFeeFraction": 0.25,
 	"showUpgradeIcon": true,
+	"pruneAfterDays": 365,
 	"debugLog": true,
 	"debugGrantSlots": 0
 }
