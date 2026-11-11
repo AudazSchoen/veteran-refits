@@ -362,7 +362,7 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
                 build();
             }
         } catch (Throwable t) {
-            log.error("XP S-Mods: refit panel action failed (" + buttonId + ")", t);
+            log.error("Veteran Refits: refit panel action failed (" + buttonId + ")", t);
         }
     }
 
@@ -382,7 +382,7 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
         member.updateStats();
         owner.refreshVariant();
         Global.getSoundPlayer().playUISound("ui_char_spent_story_point_technology", 1f, 1f);
-        log.info(String.format("XP S-Mods: %s bought slot %d for %.0f XP (%.0f XP left)",
+        log.info(String.format("Veteran Refits: %s bought slot %d for %.0f XP (%.0f XP left)",
                 member.getShipName(), bought + 1, cost, XPData.getXP(id)));
     }
 
@@ -396,23 +396,23 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
             variant.removePermaMod(id);
             // Remove it from the ship entirely, not just demote it to a normal hullmod.
             if (variant.hasHullMod(id)) variant.removeMod(id);
-            log.info("XP S-Mods: " + member.getShipName() + " removed S-mod " + id);
+            log.info("Veteran Refits: " + member.getShipName() + " removed S-mod " + id);
         }
         for (String id : toBuild) {
             variant.addPermaMod(id, true);
-            log.info("XP S-Mods: " + member.getShipName() + " built in " + id);
+            log.info("Veteran Refits: " + member.getShipName() + " built in " + id);
         }
         // Enhancing a built-in: vanilla's isSMod() reads this list (same as Progressive S-Mods).
         for (String id : toUnenhance) {
             variant.getSModdedBuiltIns().remove(id);
-            log.info("XP S-Mods: " + member.getShipName() + " removed enhancement of built-in " + id);
+            log.info("Veteran Refits: " + member.getShipName() + " removed enhancement of built-in " + id);
         }
         for (String id : toEnhance) {
             variant.getSModdedBuiltIns().add(id);
-            log.info("XP S-Mods: " + member.getShipName() + " enhanced built-in " + id);
+            log.info("Veteran Refits: " + member.getShipName() + " enhanced built-in " + id);
         }
         credits().subtract(total);
-        log.info(String.format("XP S-Mods: %s paid %.0f credits", member.getShipName(), total));
+        log.info(String.format("Veteran Refits: %s paid %.0f credits", member.getShipName(), total));
         member.updateStats();
         owner.refreshVariant();
         boolean added = !toBuild.isEmpty() || !toEnhance.isEmpty();

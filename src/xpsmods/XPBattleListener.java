@@ -67,14 +67,14 @@ public class XPBattleListener extends BaseCampaignEventListener {
             }
             for (Map.Entry<String, String> e : casualties.entrySet()) {
                 if (inFleet.contains(e.getKey())) {
-                    if (XPSModsSettings.debugLog) log.info("XP S-Mods: " + e.getValue() + " was recovered, data kept");
+                    if (XPSModsSettings.debugLog) log.info("Veteran Refits: " + e.getValue() + " was recovered, data kept");
                 } else {
                     XPData.removeAll(e.getKey());
-                    log.info("XP S-Mods: " + e.getValue() + " (id " + e.getKey() + ") was lost in battle, data removed");
+                    log.info("Veteran Refits: " + e.getValue() + " (id " + e.getKey() + ") was lost in battle, data removed");
                 }
             }
         } catch (Exception ex) {
-            log.error("XP S-Mods: failed to check battle losses", ex);
+            log.error("Veteran Refits: failed to check battle losses", ex);
         } finally {
             casualties.clear();
         }
@@ -85,7 +85,7 @@ public class XPBattleListener extends BaseCampaignEventListener {
         try {
             awardXP(result);
         } catch (Exception e) {
-            log.error("XP S-Mods: failed to award XP", e);
+            log.error("Veteran Refits: failed to award XP", e);
         }
     }
 
@@ -102,7 +102,7 @@ public class XPBattleListener extends BaseCampaignEventListener {
             enemy = tmp;
         }
         if (!isPlayerSide(player)) {
-            if (XPSModsSettings.debugLog) log.info("XP S-Mods: engagement had no player side, no XP awarded");
+            if (XPSModsSettings.debugLog) log.info("Veteran Refits: engagement had no player side, no XP awarded");
             return;
         }
 
@@ -142,7 +142,7 @@ public class XPBattleListener extends BaseCampaignEventListener {
             }
             evenKillXP /= deployed.size();
             if (XPSModsSettings.debugLog) {
-                log.info("XP S-Mods: no combat damage data (auto-resolve?), no damage XP, kill XP split evenly");
+                log.info("Veteran Refits: no combat damage data (auto-resolve?), no damage XP, kill XP split evenly");
             }
         }
 
@@ -214,7 +214,7 @@ public class XPBattleListener extends BaseCampaignEventListener {
             try {
                 report(deployedEarned, reserveXP, reserveCount, playerFleet, readyBefore);
             } catch (Exception e) {
-                log.error("XP S-Mods: failed to write the battle report", e);
+                log.error("Veteran Refits: failed to write the battle report", e);
             }
         }
     }
@@ -297,7 +297,7 @@ public class XPBattleListener extends BaseCampaignEventListener {
     private static void debug(FleetMemberAPI m, float earned, float total, String detail) {
         if (!XPSModsSettings.debugLog) return;
         String totalText = total >= 0f ? String.format("%.0f total", total) : "-";
-        log.info(String.format("XP S-Mods: %s, %s (id %s) +%.0f XP -> %s [%s]",
+        log.info(String.format("Veteran Refits: %s, %s (id %s) +%.0f XP -> %s [%s]",
                 m.getShipName(), m.getHullSpec().getHullNameWithDashClass(), m.getId(), earned, totalText, detail));
     }
 }

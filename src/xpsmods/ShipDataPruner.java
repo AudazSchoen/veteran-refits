@@ -49,7 +49,7 @@ public class ShipDataPruner implements EveryFrameScript {
         try {
             check(clock);
         } catch (Throwable t) {
-            log.error("XP S-Mods: ship data cleanup failed", t);
+            log.error("Veteran Refits: ship data cleanup failed", t);
         }
     }
 
@@ -70,14 +70,14 @@ public class ShipDataPruner implements EveryFrameScript {
                 // Data from before this feature: start its clock now instead of removing it.
                 XPData.markSeen(id, now);
             } else if (clock.getElapsedDaysSince(last) > limitDays) {
-                log.info(String.format("XP S-Mods: removed data for ship %s (XP %.0f, slots %d), not seen for %.1f months",
+                log.info(String.format("Veteran Refits: removed data for ship %s (XP %.0f, slots %d), not seen for %.1f months",
                         id, XPData.getXP(id), XPData.getBoughtSlots(id), clock.getElapsedDaysSince(last) / daysPerMonth));
                 XPData.removeAll(id);
                 removed++;
             }
         }
         if (removed > 0 || XPSModsSettings.debugLog) {
-            log.info("XP S-Mods: ship data check: " + seen.size() + " ships seen, " + removed + " entries removed");
+            log.info("Veteran Refits: ship data check: " + seen.size() + " ships seen, " + removed + " entries removed");
         }
     }
 

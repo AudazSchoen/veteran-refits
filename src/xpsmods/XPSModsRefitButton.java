@@ -14,7 +14,7 @@ public class XPSModsRefitButton extends BaseRefitButton {
 
     @Override
     public String getButtonName(FleetMemberAPI member, ShipVariantAPI variant) {
-        return "Ship upgrades (XP S-Mods)";
+        return "Ship upgrades (Veteran Refits)";
     }
 
     @Override

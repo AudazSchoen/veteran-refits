@@ -63,7 +63,7 @@ public class UpgradeIconOverlay extends BaseCustomUIPanelPlugin {
             draw(alphaMult);
         } catch (Throwable t) {
             failed = true;
-            log.error("XP S-Mods: could not draw upgrade icons on the refit ship list; "
+            log.error("Veteran Refits: could not draw upgrade icons on the refit ship list; "
                     + "they stay off until the game restarts", t);
         }
     }

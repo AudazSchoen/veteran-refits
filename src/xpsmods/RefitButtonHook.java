@@ -58,7 +58,7 @@ public class RefitButtonHook implements EveryFrameScript {
         } catch (Throwable t) {
             failed = true;
             UpgradeIconOverlay.failed = true;
-            log.error("XP S-Mods: could not read the refit screen; the button under 'Build in' and the "
+            log.error("Veteran Refits: could not read the refit screen; the button under 'Build in' and the "
                     + "upgrade icons stay off until the game restarts", t);
             return;
         }
@@ -68,7 +68,7 @@ public class RefitButtonHook implements EveryFrameScript {
                 UpgradeIconOverlay.ensureAttached((UIPanelAPI) tab);
             } catch (Throwable t) {
                 UpgradeIconOverlay.failed = true;
-                log.error("XP S-Mods: could not add upgrade icons to the refit ship list; "
+                log.error("Veteran Refits: could not add upgrade icons to the refit ship list; "
                         + "they stay off until the game restarts", t);
             }
         }
@@ -92,7 +92,7 @@ public class RefitButtonHook implements EveryFrameScript {
             }
         } catch (Throwable t) {
             failed = true;
-            log.error("XP S-Mods: could not add the button under 'Build in' in the refit screen; "
+            log.error("Veteran Refits: could not add the button under 'Build in' in the refit screen; "
                     + "it stays off until the game restarts (the LunaLib refit list button still works)", t);
         }
     }
@@ -134,7 +134,7 @@ public class RefitButtonHook implements EveryFrameScript {
         BaseRefitButton button = LunaRefitManager.getFirstButtonOfClass(XPSModsRefitButton.class);
         RefitButtonAdder adder = RefitFrame.lunaAdder();
         if (button == null || adder == null) {
-            log.warn("XP S-Mods: LunaLib refit manager not found, can't open the panel");
+            log.warn("Veteran Refits: LunaLib refit manager not found, can't open the panel");
             return;
         }
         UIPanelAPI corePanel = adder.getCorePanel();
@@ -166,7 +166,7 @@ public class RefitButtonHook implements EveryFrameScript {
             try {
                 openPanel();
             } catch (Throwable t) {
-                log.error("XP S-Mods: failed to open the refit panel", t);
+                log.error("Veteran Refits: failed to open the refit panel", t);
             }
         }
     }

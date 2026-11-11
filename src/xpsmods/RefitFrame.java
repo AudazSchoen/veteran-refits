@@ -75,7 +75,7 @@ final class RefitFrame {
     private static void logOnce(String how, RefitFrame f) {
         if (logged || !XPSModsSettings.debugLog) return;
         if (f != null) logged = true;
-        log.info("XP S-Mods: refit frame " + how
+        log.info("Veteran Refits: refit frame " + how
                 + (f == null ? "" : String.format(" at (%.0f, %.0f) %.0fx%.0f", f.left, f.top, f.width, f.height)));
     }
 
@@ -112,7 +112,7 @@ final class RefitFrame {
             }
             for (Object child : stale) core.removeComponent((UIComponentAPI) child);
         } catch (Throwable t) {
-            log.warn("XP S-Mods: could not remove the fleet list dimmer", t);
+            log.warn("Veteran Refits: could not remove the fleet list dimmer", t);
         }
     }
 

@@ -14,7 +14,7 @@ public class XPSModsPlugin extends BaseModPlugin {
         XPSModsSettings.init();
         Global.getSettings().loadTexture(UpgradeIconOverlay.SPRITE);
         LunaRefitManager.addRefitButton(new XPSModsRefitButton());
-        log.info("XP S-Mods: application loaded");
+        log.info("Veteran Refits: application loaded");
     }
 
     @Override
@@ -25,6 +25,6 @@ public class XPSModsPlugin extends BaseModPlugin {
         // Transient: not saved, re-added on every load.
         Global.getSector().addTransientScript(new RefitButtonHook());
         Global.getSector().addTransientScript(new ShipDataPruner());
-        log.info("XP S-Mods: game loaded (newGame=" + newGame + "), battle listener registered");
+        log.info("Veteran Refits: game loaded (newGame=" + newGame + "), battle listener registered");
     }
 }

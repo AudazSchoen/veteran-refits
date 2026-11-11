@@ -108,27 +108,27 @@ public final class XPSModsSettings implements LunaSettingsListener {
             pruneAfterMonths = i("pruneAfterMonths", pruneAfterMonths);
             debugLog = b("debugLog", debugLog);
             debugGrantSlots = i("debugGrantSlots", debugGrantSlots);
-            log.info("XP S-Mods: settings loaded from LunaLib");
+            log.info("Veteran Refits: settings loaded from LunaLib");
         } catch (Throwable t) {
-            log.error("XP S-Mods: could not read LunaLib settings, keeping previous values", t);
+            log.error("Veteran Refits: could not read LunaLib settings, keeping previous values", t);
         }
     }
 
     private static float f(String key, float fallback) {
         Float v = LunaSettings.getFloat(MOD_ID, "xpsmods_" + key);
-        if (v == null) log.warn("XP S-Mods: setting xpsmods_" + key + " missing, using " + fallback);
+        if (v == null) log.warn("Veteran Refits: setting xpsmods_" + key + " missing, using " + fallback);
         return v != null ? v : fallback;
     }
 
     private static int i(String key, int fallback) {
         Integer v = LunaSettings.getInt(MOD_ID, "xpsmods_" + key);
-        if (v == null) log.warn("XP S-Mods: setting xpsmods_" + key + " missing, using " + fallback);
+        if (v == null) log.warn("Veteran Refits: setting xpsmods_" + key + " missing, using " + fallback);
         return v != null ? v : fallback;
     }
 
     private static boolean b(String key, boolean fallback) {
         Boolean v = LunaSettings.getBoolean(MOD_ID, "xpsmods_" + key);
-        if (v == null) log.warn("XP S-Mods: setting xpsmods_" + key + " missing, using " + fallback);
+        if (v == null) log.warn("Veteran Refits: setting xpsmods_" + key + " missing, using " + fallback);
         return v != null ? v : fallback;
     }
 }

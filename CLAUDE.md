@@ -58,7 +58,7 @@ Milestones 1 (mod_info.json, jar build, mod plugin) and 2 (settings + XP trackin
 
 What this mod does
 
-Working title: XP S-Mods. A lighter take on the idea behind Progressive S-Mods. Ships earn XP in combat. XP raises a ship's S-mod limit. S-mods are built in with credits, never story points.
+Name: Veteran Refits (mod id `xpsmods`, which must not change: saves depend on it; working title was "XP S-Mods"). A lighter take on the idea behind Progressive S-Mods. Ships earn XP in combat. XP raises a ship's S-mod limit. S-mods are built in with credits, never story points.
 
 Core loop
 - Ships earn XP. After every battle the player's fleet takes part in, each deployed ship earns XP, stored per fleet member.

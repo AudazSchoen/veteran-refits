@@ -1,2 +1,2 @@
 name,id,tier,rarity,tech/manufacturer,tags,uiTags,base value,unlocked,hidden,hiddenEverywhere,cost_frigate,cost_dest,cost_cruiser,cost_capital,script,desc,short,sModDesc,sprite
-XP S-Mod Slots,xpsmods_slots,,,,,,0,,TRUE,TRUE,0,0,0,0,xpsmods.XPSlotsHullmod,"Raises this ship's S-mod limit by the slots bought with XP.",Extra S-mod slots bought with XP.,,graphics/hullmods/integrated_targeting_unit.png
+Veteran Refits S-Mod Slots,xpsmods_slots,,,,,,0,,TRUE,TRUE,0,0,0,0,xpsmods.XPSlotsHullmod,"Raises this ship's S-mod limit by the slots bought with XP.",Extra S-mod slots bought with XP.,,graphics/hullmods/integrated_targeting_unit.png
