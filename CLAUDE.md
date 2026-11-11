@@ -9,6 +9,10 @@ Milestones 1 (mod_info.json, jar build, mod plugin) and 2 (settings + XP trackin
 - `XPSModsSettings` loads `data/config/xpsmods_settings.json` in `onApplicationLoad`. A missing key falls back to the default in the class and logs a warning.
 - `XPData` stores XP as a `HashMap<String, Float>` in sector persistent data under `"xpsmods_xp"`, keyed by `FleetMemberAPI.getId()`.
 - `XPBattleListener` (a transient `BaseCampaignEventListener`, added again in `onGameLoad`) awards XP in `reportPlayerEngagement`. Per-ship hull damage comes from `EngagementResultAPI.getLastCombatDamageData()`. Kill XP is split by each ship's share of the damage dealt to that enemy, because the API doesn't record who landed the kill. With `debugLog` on, it logs one line per ship.
+- Milestone 3 (extra slots), not yet tested in the game:
+  - `XPData` also stores bought slots under `"xpsmods_slots"` (String → Integer). `getSlotBonus` caps them at `maxExtraSlots`; the `debugGrantSlots` setting overrides them for testing.
+  - `XPSlotsHullmod` (`data/hullmods/hull_mods.csv`, id `xpsmods_slots`) applies the bonus.
+  - `SlotBonus.ensureHullmod(member)` adds the hullmod, copying shared stock/goal/empty-hull variants first. It's called on the player fleet in `onGameLoad`, and must also be called whenever slots are bought.
 - Auto-resolve gotcha: `BattleAutoresolverPluginImpl`'s results always return `false` from `EngagementResultForFleetAPI.isPlayer()` and have no damage data, so kill XP is split evenly across the deployed ships there. Identify the player's side with `Misc.isPlayerOrCombinedContainingPlayer(side.getFleet())`.
 
 ## Build
@@ -67,12 +71,12 @@ Milestone 1: a market interaction option added through data/campaign/rules.csv, 
 Implementation notes (verify every API name in starfarer.api.zip before using it)
 
 - Persistence: store XP and bought slots in Global.getSector().getPersistentData(), keyed by FleetMemberAPI.getId(). Wrap this in a small data class. Prune entries for ships that no longer exist.
-- Extra S-mod slots: vanilla reads the max permanent hullmods from a ship stat (look for something like Stats.MAX_PERMANENT_HULLMODS_MOD and Misc.getMaxPermanentMods). Apply the bonus through that stat. A small hidden hullmod is one option, and a stat applied from the mod plugin each frame is another. Choose whichever the API supports cleanly so the vanilla UI shows the right limit.
+- Extra S-mod slots: vanilla reads the limit from `Stats.MAX_PERMANENT_HULLMODS_MOD` (`Misc.getMaxPermanentMods`). The bonus is applied by the hidden hullmod `xpsmods_slots`, which reads `stats.getFleetMember()` and calls `modifyFlat`. It's added with `addPermaMod(id, false)` so refit strip/autofit can't remove it, the same approach as Progressive S-Mods (`../Progressive S-Mods-1.2.0/src`, a useful reference). Don't run both mods together: they stack bonuses on the same stat.
 - Building in: use the variant's permanent/S-mod methods (for example ShipVariantAPI.addPermaMod(id, true)). Check how vanilla does it and copy that behaviour.
 - XP from battles: use a campaign listener (BaseCampaignEventListener, for example reportPlayerEngagement or reportBattleFinalized) and read per-ship results from the engagement result. If per-ship damage isn't exposed there, use an EveryFrameCombatPlugin to record damage during combat, then hand it to the campaign side afterwards.
 - Credits: Global.getSector().getPlayerFleet().getCargo().getCredits().
 Build a jar, not loose Janino scripts, because this needs listeners, a custom dialog and generics. Mod plugin: BaseModPlugin subclass, registering listeners in onGameLoad.
-- Saves must keep loading if the mod is removed later. Avoid storing custom classes in the save where possible, and prefer maps of primitives and strings.
+- Save compatibility on removal is NOT a goal: the mod is not safe to remove from a save (the hidden `xpsmods_slots` hullmod is stored on ship variants). Don't add strip/restore-on-save workarounds. Plain maps of primitives and strings in persistent data are still preferred for simplicity.
 
 Milestones (one at a time, test in-game after each)
 - mod_info.json plus a jar build that compiles against starfarer.api.jar, with an empty mod plugin. The game loads it with no log errors.

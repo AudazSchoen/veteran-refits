@@ -9,5 +9,7 @@
 	"xpPerHullDamage": 0.05,
 	"killXP": 100,
 	"reserveShareOfAverage": 0.5,
-	"debugLog": true
+	"maxExtraSlots": 3,
+	"debugLog": true,
+	"debugGrantSlots": 0
 }

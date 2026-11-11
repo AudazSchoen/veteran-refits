@@ -19,6 +19,9 @@ public final class XPSModsSettings {
     public static float killXP = 100f;
     public static float reserveShareOfAverage = 0.5f;
     public static boolean debugLog = true;
+    public static int maxExtraSlots = 3;
+    /** Testing only: when above 0, every ship is treated as having this many bought slots. */
+    public static int debugGrantSlots = 0;
 
     private static final Map<HullSize, Float> hullSizeMult = new EnumMap<HullSize, Float>(HullSize.class);
     static {
@@ -42,6 +45,8 @@ public final class XPSModsSettings {
         killXP = getFloat(json, "killXP", killXP);
         reserveShareOfAverage = getFloat(json, "reserveShareOfAverage", reserveShareOfAverage);
         debugLog = json.optBoolean("debugLog", debugLog);
+        maxExtraSlots = (int) getFloat(json, "maxExtraSlots", maxExtraSlots);
+        debugGrantSlots = (int) getFloat(json, "debugGrantSlots", debugGrantSlots);
 
         JSONObject sizes = json.optJSONObject("hullSizeMult");
         if (sizes == null) {

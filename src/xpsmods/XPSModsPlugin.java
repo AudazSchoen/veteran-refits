@@ -18,6 +18,7 @@ public class XPSModsPlugin extends BaseModPlugin {
     public void onGameLoad(boolean newGame) {
         // Transient: not written to the save, so it is re-added on every load.
         Global.getSector().addTransientListener(new XPBattleListener());
+        SlotBonus.ensureHullmodOnPlayerFleet();
         log.info("XP S-Mods: game loaded (newGame=" + newGame + "), battle listener registered");
     }
 }
