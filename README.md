@@ -39,7 +39,7 @@ Open the refit screen and press **Ship upgrades** under vanilla's **Build in** b
 
 ## Default rules
 
-All of these can be changed in LunaLib's mod settings (F2 by default, then **Veteran Refits**).
+All of these can be changed in LunaLib's mod settings (F3 by default, then **Veteran Refits**).
 
 | | Default |
 |---|---|
@@ -64,8 +64,8 @@ All of these can be changed in LunaLib's mod settings (F2 by default, then **Vet
 Some techniques were learned from reading these mods. No code was copied.
 
 - **[LunaLib](https://fractalsoftworks.com/forum/index.php?topic=25658.0)** by Lukas04: the refit button and panel API, the mod settings, and the workaround for reflection into the game's UI.
-- **Progressive S-Mods** by qcwxezda and chdcl: the original idea of earning S-mods through ship XP, raising the S-mod limit with a hidden hullmod, and its build-in rules.
-- **Exiled Sector** by Portals: placing a button under vanilla's "Build in" button, and the refit screen's frame measurements.
+- **[Progressive S-Mods](https://fractalsoftworks.com/forum/index.php?topic=23006.0)** by qcwxezda and chdcl: the original idea of earning S-mods through ship XP, raising the S-mod limit with a hidden hullmod, and its build-in rules.
+- **[Exiled Sector](https://fractalsoftworks.com/forum/index.php?topic=36072.0)** by Portals: placing a button under vanilla's "Build in" button, and the refit screen's frame measurements.
 
 ## AI use
 
