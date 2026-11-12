@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-All milestones, including the polish steps, are done and released as **Veteran Refits 1.0.0** (see GitHub and releases below). Mod id `xpsmods`, plugin class `xpsmods.XPSModsPlugin`, Java sources under `src/xpsmods/`.
+All milestones, including the polish steps, are done and released as **Veteran Refits 1.0.1** (see GitHub and releases below). Mod id `xpsmods`, plugin class `xpsmods.XPSModsPlugin`, Java sources under `src/xpsmods/`.
 
 - Settings are LunaLib mod settings: fields, defaults, ranges and tabs live in `data/config/LunaSettings.csv` (ids `xpsmods_<field>`). `XPSModsSettings.init()` (called in `onApplicationLoad`) reads them and registers a `LunaSettingsListener`, so menu changes apply without a restart. The hotkey change applies the next time refit opens. A new tunable needs a CSV row, a static field, and a line in `settingsChanged`. There is no JSON settings file any more.
 - `XPData` stores XP as a `HashMap<String, Float>` in sector persistent data under `"xpsmods_xp"`, keyed by `FleetMemberAPI.getId()`.
