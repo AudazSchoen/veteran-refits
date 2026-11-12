@@ -42,7 +42,7 @@ All milestones, including the polish steps, are done and released as **Veteran R
 - Repo: https://github.com/AudazSchoen/veteran-refits (public, default branch `main`, MIT licence). `README.md` is the player-facing page. Keep its "Default rules" table in sync with `data/config/LunaSettings.csv` when defaults change.
 - Commits use the repo-local identity `AudazSchoen <75089101+AudazSchoen@users.noreply.github.com>`. The noreply address keeps the author's real email private, so don't commit with another email.
 - Pushing: the local SSH key isn't registered with GitHub, so the remote is HTTPS. Push with `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push`, which uses `gh`'s login without changing global git config, unless the user has run `gh auth setup-git`. Only push or publish when asked.
-- Releases are tagged `vX.Y.Z`, matching `"version"` in `mod_info.json`. The asset is `Veteran-Refits-<version>.zip`, containing a single `Veteran Refits/` folder built as follows:
+- Releases are tagged `vX.Y.Z`, matching `"version"` in `mod_info.json`. Also bump `modVersion` and `directDownloadURL` in `veteran_refits.version` (Version Checker / TriOS format, listed in `data/config/version/version_files.csv`). Mod managers read the copy on `main` via `masterVersionFile`, so push it only after the release asset exists, or `directDownloadURL` points at a missing zip. The asset is `Veteran-Refits-<version>.zip`, containing a single `Veteran Refits/` folder built as follows:
   1. Run `./build.sh`.
   2. Unpack `git archive HEAD` into the folder.
   3. Delete `CLAUDE.md`, `build.sh` and `.gitignore` from it.
