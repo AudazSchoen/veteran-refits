@@ -7,6 +7,7 @@ Vanilla's story-point build-in still works. This mod adds a second way to get S-
 - **Game version:** 0.98a-RC8
 - **Requires:** [LunaLib](https://fractalsoftworks.com/forum/index.php?topic=25658.0)
 - **Download:** see [Releases](https://github.com/AudazSchoen/veteran-refits/releases), or install and update it with [TriOS](https://github.com/wispborne/TriOS) (supports Version Checker)
+- **Forum thread:** [Veteran Refits on the Fractal Softworks forum](https://fractalsoftworks.com/forum/index.php?topic=36318.0)
 
 ## Features
 
