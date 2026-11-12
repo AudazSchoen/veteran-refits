@@ -2,7 +2,8 @@ fieldID,fieldName,fieldType,defaultValue,secondaryValue,fieldDescription,minValu
 xpsmods_headerXP,Ship XP,Header,Earning XP in battle,,,,,XP
 xpsmods_xpPerHullDamage,XP per hull damage,Double,0.05,,XP per point of hull damage a ship deals (0.05 = 50 XP per 1000 damage).,0,1,XP
 xpsmods_killXP,XP per kill,Double,100,,"XP for each enemy ship disabled or destroyed, multiplied by the enemy's hull size multiplier and split by each of your ships' share of the damage (evenly in auto-resolve).",0,2000,XP
-xpsmods_reserveShareOfAverage,Reserve share of average,Double,0.25,,Undeployed (reserve and civilian) ships earn this fraction of the average XP of the deployed ships. Mothballed ships earn nothing.,0,1,XP
+xpsmods_reserveShareOfAverage,Reserve share of average,Double,0.25,,Undeployed (reserve and civilian) ships earn this fraction of the average XP of the deployed ships that weren't disabled. Mothballed ships earn nothing.,0,1,XP
+xpsmods_knockedOutEarnXP,Disabled ships earn XP,Boolean,false,,"When on, ships disabled or destroyed in a battle still earn XP for it (at least the reserve share). When off, they earn nothing. Either way they don't count toward the average that the reserve share is based on.",,,XP
 xpsmods_hullSizeMultFrigate,Hull size multiplier: frigate,Double,1,,Scales kill XP for enemy frigates.,0,10,XP
 xpsmods_hullSizeMultDestroyer,Hull size multiplier: destroyer,Double,1.5,,Scales kill XP for enemy destroyers.,0,10,XP
 xpsmods_hullSizeMultCruiser,Hull size multiplier: cruiser,Double,2,,Scales kill XP for enemy cruisers.,0,10,XP

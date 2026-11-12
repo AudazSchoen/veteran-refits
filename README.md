@@ -10,7 +10,7 @@ Vanilla's story-point build-in still works. This mod adds a second way to get S-
 
 ## Features
 
-- **Ship XP from combat.** Deployed ships earn XP for the hull damage they deal and for the enemy ships they help knock out. Ships in reserve get a share, and a deployed ship never earns less than that share.
+- **Ship XP from combat.** Deployed ships earn XP for the hull damage they deal and for the enemy ships they help knock out. Ships in reserve get a share, and a deployed ship never earns less than that share. Ships disabled in the battle earn nothing (optional).
 - **Extra S-mod slots.** Spend a ship's XP to raise its S-mod limit. The raised limit also shows in the vanilla refit screen.
 - **Build in and remove S-mods for credits.** This uses a dialog styled after vanilla's build-in dialog. It also handles:
   - enhancing built-in hullmods that have an S-mod effect, like vanilla
@@ -45,7 +45,8 @@ All of these can be changed in LunaLib's mod settings (F3 by default, then **Vet
 |---|---|
 | Damage XP | 0.05 XP per point of hull damage dealt |
 | Kill XP | 100 per enemy ship disabled or destroyed, × enemy size (frigate 1, destroyer 1.5, cruiser 2, capital 3), split by each ship's share of the damage (evenly when auto-resolved) |
-| Reserve ships | 25% of the deployed ships' average XP (mothballed ships get nothing) |
+| Reserve ships | 25% of the average XP of the deployed ships that weren't disabled (mothballed ships get nothing) |
+| Disabled ships | earn no XP from that battle |
 | Extra slots | up to +3 per ship |
 | Slot cost | 1,000 XP × 2ⁿ (1,000 / 2,000 / 4,000) |
 | Build-in cost | 1,000 credits per OP × hull size (1 / 1.25 / 1.5 / 2), minimum 1,000 |

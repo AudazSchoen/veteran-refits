@@ -40,6 +40,13 @@ public class XPBattleListener extends BaseCampaignEventListener {
     /** The last interaction dialog shown; the post-battle dialog, if getCurrentInteractionDialog() is null. */
     private InteractionDialogAPI lastDialog;
 
+    /**
+     * Ids of the player's fleet members when the last interaction dialog opened, so before the battle.
+     * Ships that mods spawn mid-combat on the player's side (Secrets of the Frontier's mimics, Dotty,
+     * daydream ships and so on) are never in it, so they earn no XP and don't count toward the average.
+     */
+    private final Set<String> fleetAtDialogStart = new HashSet<String>();
+
     public XPBattleListener() {
         super(false);
     }
@@ -47,6 +54,11 @@ public class XPBattleListener extends BaseCampaignEventListener {
     @Override
     public void reportShownInteractionDialog(InteractionDialogAPI dialog) {
         lastDialog = dialog;
+        fleetAtDialogStart.clear();
+        CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
+        if (playerFleet != null) {
+            for (FleetMemberAPI m : playerFleet.getFleetData().getMembersListCopy()) fleetAtDialogStart.add(m.getId());
+        }
     }
 
     /**
@@ -106,22 +118,24 @@ public class XPBattleListener extends BaseCampaignEventListener {
             return;
         }
 
-        // Only the player's own ships earn XP, not allies. Disabled ships may already have been taken out
-        // of the fleet, so a ship we hold data for also counts as ours (only player ships ever get data).
+        // Only the player's own ships earn XP: not allies, and not temporary ships other mods spawn during
+        // combat. Disabled ships may already have been taken out of the fleet, so ships in the fleet when
+        // the encounter dialog opened, and ships we hold data for, also count as ours.
         List<FleetMemberAPI> fleetMembers = playerFleet.getFleetData().getMembersListCopy();
         Set<String> readyBefore = new HashSet<String>();
         for (FleetMemberAPI m : fleetMembers) if (XPData.canBuySlot(m.getId())) readyBefore.add(m.getId());
         Set<String> playerIds = new HashSet<String>();
         for (FleetMemberAPI m : fleetMembers) playerIds.add(m.getId());
         playerIds.addAll(XPData.allIds());
+        playerIds.addAll(fleetAtDialogStart);
 
         // Deployed ships, including ones disabled or destroyed in this engagement.
         Map<String, FleetMemberAPI> deployed = new LinkedHashMap<String, FleetMemberAPI>();
-        addOwn(deployed, player.getDeployed(), playerIds, playerFleet);
-        addOwn(deployed, player.getRetreated(), playerIds, playerFleet);
+        addOwn(deployed, player.getDeployed(), playerIds);
+        addOwn(deployed, player.getRetreated(), playerIds);
         Map<String, FleetMemberAPI> knockedOut = new LinkedHashMap<String, FleetMemberAPI>();
-        addOwn(knockedOut, player.getDisabled(), playerIds, playerFleet);
-        addOwn(knockedOut, player.getDestroyed(), playerIds, playerFleet);
+        addOwn(knockedOut, player.getDisabled(), playerIds);
+        addOwn(knockedOut, player.getDestroyed(), playerIds);
         deployed.putAll(knockedOut);
         // Lost or not is decided when the battle ends (reportBattleOccurred).
         for (FleetMemberAPI m : knockedOut.values()) casualties.put(m.getId(), m.getShipName());
@@ -161,7 +175,10 @@ public class XPBattleListener extends BaseCampaignEventListener {
         }
 
         // First work out what each deployed ship earned, then the reserve share from those real numbers.
+        // Ships knocked out this engagement are left out of the average: they often end up lost, and
+        // with knockedOutEarnXP off they earn nothing anyway.
         float totalDeployedXP = 0f;
+        int survivors = 0;
         Map<String, float[]> earnedBy = new LinkedHashMap<String, float[]>(); // id -> {damageXP, killXP}
         for (FleetMemberAPI m : deployed.values()) {
             float damageXP = 0f;
@@ -181,22 +198,33 @@ public class XPBattleListener extends BaseCampaignEventListener {
                 }
             }
             earnedBy.put(m.getId(), new float[] {damageXP, killXP});
-            totalDeployedXP += damageXP + killXP;
+            if (!knockedOut.containsKey(m.getId())) {
+                totalDeployedXP += damageXP + killXP;
+                survivors++;
+            }
         }
 
         // Undeployed ships (reserve and civilian) get a share of the deployed average. Mothballed get nothing.
-        float reserveXP = (totalDeployedXP / deployed.size()) * XPSModsSettings.reserveShareOfAverage;
+        float reserveXP = survivors > 0
+                ? (totalDeployedXP / survivors) * XPSModsSettings.reserveShareOfAverage : 0f;
 
         // Deployed ships never earn less than the reserve ships did.
         Map<FleetMemberAPI, Float> deployedEarned = new LinkedHashMap<FleetMemberAPI, Float>();
         for (FleetMemberAPI m : deployed.values()) {
             float[] parts = earnedBy.get(m.getId());
-            float earned = Math.max(parts[0] + parts[1], reserveXP);
-            deployedEarned.put(m, earned);
-            float newTotal = XPData.addXP(m.getId(), earned);
+            boolean out = knockedOut.containsKey(m.getId());
             String detail = String.format("damage %.0f, kills %.0f", parts[0], parts[1]);
-            if (parts[0] + parts[1] < reserveXP) detail += ", raised to reserve share";
-            if (knockedOut.containsKey(m.getId())) detail += ", knocked out";
+            float earned;
+            if (out && !XPSModsSettings.knockedOutEarnXP) {
+                earned = 0f;
+                detail += ", knocked out, no XP";
+            } else {
+                earned = Math.max(parts[0] + parts[1], reserveXP);
+                if (parts[0] + parts[1] < reserveXP) detail += ", raised to reserve share";
+                if (out) detail += ", knocked out";
+            }
+            deployedEarned.put(m, earned);
+            float newTotal = earned > 0f ? XPData.addXP(m.getId(), earned) : XPData.getXP(m.getId());
             debug(m, earned, newTotal, detail);
         }
 
@@ -212,7 +240,7 @@ public class XPBattleListener extends BaseCampaignEventListener {
 
         if (XPSModsSettings.battleReport) {
             try {
-                report(deployedEarned, reserveXP, reserveCount, playerFleet, readyBefore);
+                report(deployedEarned, knockedOut.keySet(), reserveXP, reserveCount, playerFleet, readyBefore);
             } catch (Exception e) {
                 log.error("Veteran Refits: failed to write the battle report", e);
             }
@@ -220,7 +248,7 @@ public class XPBattleListener extends BaseCampaignEventListener {
     }
 
     /** XP earned and ships with an upgrade available, written into the post-battle dialog text. */
-    private void report(Map<FleetMemberAPI, Float> deployedEarned, float reserveXP, int reserveCount,
+    private void report(Map<FleetMemberAPI, Float> deployedEarned, Set<String> knockedOut, float reserveXP, int reserveCount,
                         CampaignFleetAPI playerFleet, Set<String> readyBefore) {
         InteractionDialogAPI dialog = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
         if (dialog == null) dialog = lastDialog;
@@ -243,6 +271,7 @@ public class XPBattleListener extends BaseCampaignEventListener {
         for (Map.Entry<FleetMemberAPI, Float> row : rows) {
             FleetMemberAPI m = row.getKey();
             String gained = "+" + Misc.getWithDGS(Math.round(row.getValue())) + " XP";
+            if (knockedOut.contains(m.getId())) gained += " (disabled)";
             String total = Misc.getWithDGS(Math.round(XPData.getXP(m.getId())));
             text.addPara("    %s, " + m.getHullSpec().getHullNameWithDashClass() + ": %s (%s total)",
                     Misc.getTextColor(), hl, m.getShipName(), gained, total);
@@ -272,11 +301,15 @@ public class XPBattleListener extends BaseCampaignEventListener {
         text.setFontInsignia();
     }
 
-    private static void addOwn(Map<String, FleetMemberAPI> into, List<FleetMemberAPI> members,
-                               Set<String> playerIds, CampaignFleetAPI playerFleet) {
+    private void addOwn(Map<String, FleetMemberAPI> into, List<FleetMemberAPI> members, Set<String> playerIds) {
         for (FleetMemberAPI m : members) {
             if (m == null || m.isFighterWing()) continue;
-            if (playerIds.contains(m.getId()) || isOwnedBy(m, playerFleet)) into.put(m.getId(), m);
+            if (playerIds.contains(m.getId())) {
+                into.put(m.getId(), m);
+            } else if (XPSModsSettings.debugLog) {
+                log.info("Veteran Refits: skipped " + m.getShipName() + ", " + m.getHullSpec().getHullNameWithDashClass()
+                        + " (id " + m.getId() + "), not a player ship (ally, or a temporary ship spawned in combat)");
+            }
         }
     }
 
@@ -288,10 +321,6 @@ public class XPBattleListener extends BaseCampaignEventListener {
         if (side.isPlayer()) return true;
         CampaignFleetAPI fleet = side.getFleet();
         return fleet != null && Misc.isPlayerOrCombinedContainingPlayer(fleet);
-    }
-
-    private static boolean isOwnedBy(FleetMemberAPI m, CampaignFleetAPI fleet) {
-        return m.getFleetData() != null && m.getFleetData().getFleet() == fleet;
     }
 
     private static void debug(FleetMemberAPI m, float earned, float total, String detail) {

@@ -22,6 +22,8 @@ public final class XPSModsSettings implements LunaSettingsListener {
     public static float xpPerHullDamage = 0.05f;
     public static float killXP = 100f;
     public static float reserveShareOfAverage = 0.25f;
+    /** Whether ships disabled or destroyed in an engagement earn XP from it. */
+    public static boolean knockedOutEarnXP = false;
     public static boolean debugLog = false;
     public static int maxExtraSlots = 3;
     public static float baseSlotXP = 1000f;
@@ -87,6 +89,7 @@ public final class XPSModsSettings implements LunaSettingsListener {
             xpPerHullDamage = f("xpPerHullDamage", xpPerHullDamage);
             killXP = f("killXP", killXP);
             reserveShareOfAverage = f("reserveShareOfAverage", reserveShareOfAverage);
+            knockedOutEarnXP = b("knockedOutEarnXP", knockedOutEarnXP);
             for (int i = 0; i < SIZES.length; i++) {
                 hullSizeMult.put(SIZES[i], f("hullSizeMult" + SIZE_SUFFIX[i], hullSizeMult.get(SIZES[i])));
                 buildInSizeMult.put(SIZES[i], f("buildInSizeMult" + SIZE_SUFFIX[i], buildInSizeMult.get(SIZES[i])));

@@ -413,6 +413,8 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
         }
         credits().subtract(total);
         log.info(String.format("Veteran Refits: %s paid %.0f credits", member.getShipName(), total));
+        // Opened from inside the add-hullmod picker: it would undo these changes when it closes.
+        RefitButtonHook.syncOpenPickers(toBuild, toRemove, toEnhance, toUnenhance);
         member.updateStats();
         owner.refreshVariant();
         boolean added = !toBuild.isEmpty() || !toEnhance.isEmpty();

@@ -16,6 +16,7 @@ import lunalib.backend.ui.refit.RefitButtonAdder;
 import lunalib.backend.ui.refit.RefitPanelBackgroundPlugin;
 import lunalib.lunaRefit.BaseRefitButton;
 import lunalib.lunaRefit.LunaRefitManager;
+import java.util.Set;
 import org.apache.log4j.Logger;
 
 /**
@@ -127,6 +128,41 @@ public class RefitButtonHook implements EveryFrameScript {
 
         mods.addComponent(panel);
         panel.getPosition().belowMid(perm, GAP_BELOW_BUILD_IN).setXAlignOffset(X_ALIGN_OFFSET);
+    }
+
+    /**
+     * Tells any open "add hullmod" picker about S-mod changes made by our dialog. The picker
+     * (ModPickerDialogV3) snapshots the variant's S-mods and enhanced built-ins when it opens, and on
+     * closing reverts the variant to that snapshot: S-mods not in it are stripped, and the enhanced
+     * built-ins are reset to it. Without this, S-mods paid for while the picker is open vanish again.
+     * Its getOriginalPermaMods()/getOriginalSModBuiltIns() return the live snapshot sets.
+     */
+    @SuppressWarnings("unchecked")
+    static void syncOpenPickers(Set<String> built, Set<String> removed, Set<String> enhanced, Set<String> unenhanced) {
+        if (built.isEmpty() && removed.isEmpty() && enhanced.isEmpty() && unenhanced.isEmpty()) return;
+        try {
+            CampaignUIAPI ui = Global.getSector().getCampaignUI();
+            if (ui == null || ui.getCurrentCoreTab() != CoreUITabId.REFIT) return;
+            for (Object child : UiReflect.children(UiReflect.coreUI(ui))) {
+                if (child == null || !UiReflect.hasMethod(child, "getOriginalPermaMods", 0)
+                        || !UiReflect.hasMethod(child, "getOriginalSModBuiltIns", 0)) continue;
+                Set<String> perma = (Set<String>) UiReflect.call(child, "getOriginalPermaMods");
+                Set<String> builtIns = (Set<String>) UiReflect.call(child, "getOriginalSModBuiltIns");
+                if (perma != null) {
+                    perma.removeAll(removed);
+                    perma.addAll(built);
+                }
+                if (builtIns != null) {
+                    builtIns.removeAll(unenhanced);
+                    builtIns.addAll(enhanced);
+                }
+                if (UiReflect.hasMethod(child, "syncUIWithVariant", 0)) UiReflect.call(child, "syncUIWithVariant");
+                if (XPSModsSettings.debugLog) log.info("Veteran Refits: updated the open hullmod picker's S-mod snapshot");
+            }
+        } catch (Throwable t) {
+            log.error("Veteran Refits: could not update the open hullmod picker; S-mods changed while it was "
+                    + "open may be reverted when it closes", t);
+        }
     }
 
     /** Opens our LunaLib panel the same way LunaLib's own refit button list does (RefitButtonAdder.kt). */
