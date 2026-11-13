@@ -2,7 +2,7 @@
 	"id": "xpsmods",
 	"name": "Veteran Refits",
 	"author": "Rook999",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Ships earn XP in combat. Spend a ship's XP in the refit screen to raise its S-mod limit, then build in or remove S-mods with credits while docked at a market. Vanilla story-point build-in still works. All values are configurable in LunaLib's mod settings. Requires LunaLib.",
 	"gameVersion": "0.98a-RC8",
 	"utility": "false",
