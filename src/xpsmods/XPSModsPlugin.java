@@ -13,6 +13,7 @@ public class XPSModsPlugin extends BaseModPlugin {
     public void onApplicationLoad() throws Exception {
         XPSModsSettings.init();
         Global.getSettings().loadTexture(UpgradeIconOverlay.SPRITE);
+        Global.getSettings().loadTexture(BuildInDialog.LOCK_PENDING_SPRITE);
         LunaRefitManager.addRefitButton(new XPSModsRefitButton());
         log.info("Veteran Refits: application loaded");
     }

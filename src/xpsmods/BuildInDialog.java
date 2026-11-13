@@ -47,8 +47,10 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
     private static final float HEADER_H = 25f;
     private static final float ROW_H = 36f;
 
-    private static final String CHECK_SPRITE = "graphics/ui/buttons/checkmark20.png";
+    /** Status icons: solid = S-mod now, closed outline = will be one on confirm, open = can be one. */
     private static final String LOCK_SPRITE = "graphics/ui/buttons/lock20.png";
+    static final String LOCK_PENDING_SPRITE = "graphics/ui/xpsmods_lock_closed_outline.png";
+    private static final String UNLOCKED_SPRITE = "graphics/ui/buttons/unlocked20.png";
 
     private static final String BUY_SLOT = "xpsmods_buy_slot";
     private static final String CONFIRM = "xpsmods_confirm";
@@ -503,7 +505,7 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
             TooltipMakerAPI boxEl = panel.createUIElement(contentW, ROW_H, false);
             box = boxEl.addAreaCheckbox("", "row", faction.getBaseUIColor(), faction.getDarkUIColor(),
                     faction.getBrightUIColor(), contentW, ROW_H, 0f);
-            box.setChecked(picked());
+            box.setChecked(highlighted());
             box.setEnabled(!locked);
             boxEl.addTooltipToPrevious(new HullModTooltip(spec), TooltipLocation.RIGHT);
             panel.addUIElement(boxEl).inTL(0f, 0f);
@@ -540,27 +542,31 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
             return picks(kind).contains(spec.getId());
         }
 
+        /**
+         * Row highlight, like vanilla: on for hullmods that are built in now and stay that way. Ticking
+         * a row to build in doesn't highlight it (its name turns green instead).
+         */
+        private boolean highlighted() {
+            return kind.removal && !picked();
+        }
+
         private boolean removing() {
             return kind.removal && picked();
         }
 
-        /** Lock icon: an S-mod or enhanced built-in that stays, or one about to be added. */
-        private boolean showLock() {
-            return kind.removal ? !picked() : picked();
-        }
 
         /** OP: "n/a" once a hullmod is (or will be) an S-mod, like vanilla; built-ins cost no OP. */
         void refresh() {
             boolean hullBuiltIn = kind == Kind.ENHANCE || kind == Kind.ENHANCED;
             boolean sModded = (kind == Kind.SMOD && !removing()) || (kind == Kind.BUILD && picked());
             op.setText(hullBuiltIn ? "-" : sModded ? "n/a" : String.valueOf(spec.getCostFor(size)));
-            name.setColor(removing() ? Misc.getNegativeHighlightColor() : Misc.getHighlightColor());
+            Color nameColor = Misc.getHighlightColor();
+            if (removing()) nameColor = Misc.getNegativeHighlightColor();
+            else if (!kind.removal && picked()) nameColor = Misc.getStoryOptionColor();
+            name.setColor(nameColor);
             if (removing()) {
                 status.setText("Remove");
                 status.setColor(Misc.getNegativeHighlightColor());
-            } else if (kind == Kind.ENHANCE && !picked()) {
-                status.setText("Built-in");
-                status.setColor(Misc.getGrayColor());
             } else {
                 status.setText("");
             }
@@ -568,7 +574,9 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
 
         @Override
         public void buttonPressed(Object buttonId) {
-            rowToggled(this, box.isChecked());
+            // The checkbox's own checked state is only the highlight; the pick is tracked here.
+            rowToggled(this, !picked());
+            box.setChecked(highlighted());
         }
 
         @Override
@@ -576,16 +584,19 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
             pos = position;
         }
 
-        /** Status column icon: lock for S-mods (current or pending), check for normal installed. */
+        /**
+         * Status column icon. Solid lock: an S-mod (or enhanced built-in) that stays. Closed outline:
+         * ticked, becomes one on confirm. Open outline: can be built in. Green when the S-mod effect is
+         * a bonus, red when it's a penalty, yellow when there's neither.
+         */
         @Override
         public void render(float alphaMult) {
             if (pos == null || removing()) return;
-            boolean lock = showLock();
-            if (!lock && kind != Kind.BUILD) return; // unticked built-in: the "Built-in" label says it
-            SpriteAPI icon = Global.getSettings().getSprite(lock ? LOCK_SPRITE : CHECK_SPRITE);
+            String sprite = kind.removal ? LOCK_SPRITE : picked() ? LOCK_PENDING_SPRITE : UNLOCKED_SPRITE;
+            SpriteAPI icon = Global.getSettings().getSprite(sprite);
             if (icon == null) return;
             icon.setSize(20f, 20f);
-            icon.setColor(Misc.getHighlightColor());
+            icon.setColor(effectColor(spec));
             icon.setAlphaMult(alphaMult);
             icon.renderAtCenter(pos.getX() + colStatusX + colStatusW / 2f, pos.getY() + ROW_H / 2f);
         }
@@ -661,6 +672,12 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
         }
         String text = spec.getSModDescription(size);
         return text != null && !text.trim().isEmpty();
+    }
+
+    /** Green for an S-mod bonus, red for a penalty, yellow for neither. */
+    private Color effectColor(HullModSpecAPI spec) {
+        if (!hasSModBonus(spec)) return Misc.getHighlightColor();
+        return isSModPenalty(spec) ? Misc.getNegativeHighlightColor() : Misc.getStoryOptionColor();
     }
 
     /** Whether the hullmod's S-mod effect is a drawback (vanilla's isSModEffectAPenalty). */
