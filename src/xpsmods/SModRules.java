@@ -39,13 +39,17 @@ final class SModRules {
         return enhanceCost(spec, size) * XPSModsSettings.removalFeeFraction;
     }
 
-    /** Installed hullmods that can become S-mods (same filter as Progressive S-Mods and vanilla). */
+    /**
+     * Installed hullmods that can become S-mods (same filter as vanilla), plus no_build_in ones such as
+     * Safety Overrides when the allowNoBuildIn setting is on.
+     */
     static List<HullModSpecAPI> buildInCandidates(ShipVariantAPI variant) {
         List<HullModSpecAPI> result = new ArrayList<HullModSpecAPI>();
         for (String id : variant.getNonBuiltInHullmods()) {
             HullModSpecAPI spec = Global.getSettings().getHullModSpec(id);
             if (spec == null || spec.isHidden() || spec.isHiddenEverywhere()) continue;
-            if (spec.hasTag(Tags.HULLMOD_DMOD) || spec.hasTag(Tags.HULLMOD_NO_BUILD_IN)) continue;
+            if (spec.hasTag(Tags.HULLMOD_DMOD)) continue;
+            if (spec.hasTag(Tags.HULLMOD_NO_BUILD_IN) && !XPSModsSettings.allowNoBuildIn) continue;
             if (variant.getPermaMods().contains(id)) continue;
             result.add(spec);
         }

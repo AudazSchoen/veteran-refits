@@ -53,6 +53,7 @@ All of these can be changed in LunaLib's mod settings (F3 by default, then **Vet
 | Build-in cost | 1,000 credits per OP × hull size (1 / 1.25 / 1.5 / 2), minimum 1,000 |
 | Enhancing a built-in | half the build-in cost; doesn't use a slot |
 | Removing | 25% of the build-in cost |
+| Hullmods that can't normally be built in (Safety Overrides etc.) | not allowed (setting "Allow building in any hullmod") |
 | Forgetting ships | data for ships not seen in your fleet or any storage for 12 months is dropped; ships lost in battle are dropped right away |
 
 ## Compatibility

@@ -20,6 +20,7 @@ xpsmods_buildInSizeMultDestroyer,Hull size multiplier: destroyer,Double,1.25,,Bu
 xpsmods_buildInSizeMultCruiser,Hull size multiplier: cruiser,Double,1.5,,Build-in cost multiplier for cruisers.,0,10,Credits
 xpsmods_buildInSizeMultCapital,Hull size multiplier: capital,Double,2,,Build-in cost multiplier for capital ships.,0,10,Credits
 xpsmods_enhanceCostMult,Built-in enhancement price,Double,0.5,,Enhancing a built-in hullmod costs this fraction of the normal build-in price.,0,5,Credits
+xpsmods_allowNoBuildIn,Allow building in any hullmod,Boolean,false,,"Lets hullmods that normally can't be built in (such as Safety Overrides, and mod hullmods tagged no_build_in) be built in with credits. D-mods and hidden hullmods stay excluded.",,,Credits
 xpsmods_allowRemoval,Allow removing S-mods,Boolean,true,,Allows removing S-mods and built-in enhancements for a fee. Bought slots stay.,,,Credits
 xpsmods_removalFeeFraction,Removal fee,Double,0.25,,"Removing costs this fraction of the build-in price (at least the minimum cost, except for built-in enhancements).",0,2,Credits
 xpsmods_headerInterface,Interface,Header,Refit screen,,,,,Interface

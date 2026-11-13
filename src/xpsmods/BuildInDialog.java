@@ -306,8 +306,8 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
         bottomY -= status.getHeightSoFar() + 8f;
         add(status).inTL(0f, bottomY);
 
-        // S-mod bonuses of every ticked hullmod, one under the other like vanilla; hullmods without a
-        // bonus are left out. Scrolls if they don't fit above the bottom stack.
+        // S-mod bonuses and penalties of every ticked hullmod, one under the other like vanilla;
+        // hullmods without either are left out. Scrolls if they don't fit above the bottom stack.
         // Bonuses being lost to a removal follow, the same way but in red.
         List<HullModSpecAPI> gained = withSModBonus(union(toBuild, toEnhance));
         List<HullModSpecAPI> lost = withSModBonus(union(toRemove, toUnenhance));
@@ -315,14 +315,20 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
         if ((!gained.isEmpty() || !lost.isEmpty()) && space > 40f) {
             TooltipMakerAPI bonuses = rightPanel.createUIElement(RIGHT_W, space, true);
             float pad = 0f;
+            // A penalty (isSModEffectAPenalty, e.g. Heavy Armor) flips the colours: gaining one is
+            // red, shedding one is green.
             for (HullModSpecAPI spec : gained) {
-                bonuses.addSectionHeading(spec.getDisplayName() + " bonus", good, darker(good), Alignment.MID, pad);
-                addSModBonus(bonuses, spec, RIGHT_W - 10f, Misc.getHighlightColor());
+                boolean penalty = isSModPenalty(spec);
+                Color c = penalty ? bad : good;
+                bonuses.addSectionHeading(spec.getDisplayName() + (penalty ? " penalty" : " bonus"), c, darker(c), Alignment.MID, pad);
+                addSModBonus(bonuses, spec, RIGHT_W - 10f, penalty ? bad : Misc.getHighlightColor());
                 pad = 12f;
             }
             for (HullModSpecAPI spec : lost) {
-                bonuses.addSectionHeading(spec.getDisplayName() + " bonus", bad, darker(bad), Alignment.MID, pad);
-                addSModBonus(bonuses, spec, RIGHT_W - 10f, bad);
+                boolean penalty = isSModPenalty(spec);
+                Color c = penalty ? good : bad;
+                bonuses.addSectionHeading(spec.getDisplayName() + (penalty ? " penalty removed" : " bonus lost"), c, darker(c), Alignment.MID, pad);
+                addSModBonus(bonuses, spec, RIGHT_W - 10f, c);
                 pad = 12f;
             }
             add(bonuses).inTL(0f, y);
@@ -621,9 +627,10 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
             }
             formattedPara(tooltip, spec.getDescription(size), params, 10f, Misc.getHighlightColor());
             if (hasSModBonus(spec)) {
-                Color good = Misc.getPositiveHighlightColor();
-                tooltip.addSectionHeading("S-mod bonus", good, darker(good), Alignment.MID, 10f);
-                addSModBonus(tooltip, spec, getTooltipWidth(null) - 10f, Misc.getHighlightColor());
+                boolean penalty = isSModPenalty(spec);
+                Color c = penalty ? Misc.getNegativeHighlightColor() : Misc.getPositiveHighlightColor();
+                tooltip.addSectionHeading(penalty ? "S-mod penalty" : "S-mod bonus", c, darker(c), Alignment.MID, 10f);
+                addSModBonus(tooltip, spec, getTooltipWidth(null) - 10f, penalty ? c : Misc.getHighlightColor());
             }
             try {
                 tooltip.setCodexEntryId(CodexDataV2.getHullmodEntryId(spec.getId()));
@@ -654,6 +661,15 @@ final class BuildInDialog extends BaseCustomUIPanelPlugin {
         }
         String text = spec.getSModDescription(size);
         return text != null && !text.trim().isEmpty();
+    }
+
+    /** Whether the hullmod's S-mod effect is a drawback (vanilla's isSModEffectAPenalty). */
+    private static boolean isSModPenalty(HullModSpecAPI spec) {
+        try {
+            return spec.getEffect().isSModEffectAPenalty();
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     /** A hullmod's S-mod effect: vanilla's own section if it has one, else its S-mod text. */

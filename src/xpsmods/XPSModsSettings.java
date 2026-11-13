@@ -33,6 +33,8 @@ public final class XPSModsSettings implements LunaSettingsListener {
     /** Enhancing a built-in hullmod costs this fraction of the normal build-in price. */
     public static float enhanceCostMult = 0.5f;
     public static boolean allowRemoval = true;
+    /** Lets hullmods tagged no_build_in (e.g. Safety Overrides) be built in. */
+    public static boolean allowNoBuildIn = false;
     public static float removalFeeFraction = 0.25f;
     /** LWJGL key code for the refit button; 0 means no hotkey. */
     public static int refitHotkey = Keyboard.KEY_S;
@@ -103,6 +105,7 @@ public final class XPSModsSettings implements LunaSettingsListener {
             minBuildInCredits = f("minBuildInCredits", minBuildInCredits);
             enhanceCostMult = f("enhanceCostMult", enhanceCostMult);
             allowRemoval = b("allowRemoval", allowRemoval);
+            allowNoBuildIn = b("allowNoBuildIn", allowNoBuildIn);
             removalFeeFraction = f("removalFeeFraction", removalFeeFraction);
 
             refitHotkey = i("refitHotkey", refitHotkey);
