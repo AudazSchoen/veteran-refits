@@ -4,7 +4,7 @@ A Starsector mod where your ships earn XP in combat. Spend a ship's XP to raise 
 
 Vanilla's story-point build-in still works. This mod adds a second way to get S-mods.
 
-- **Game version:** 0.98a-RC8
+- **Game version:** 0.98.5a-RC8
 - **Requires:** [LunaLib](https://fractalsoftworks.com/forum/index.php?topic=25658.0)
 - **Download:** see [Releases](https://github.com/AudazSchoen/veteran-refits/releases), or install and update it with [TriOS](https://github.com/wispborne/TriOS) (supports Version Checker)
 - **Forum thread:** [Veteran Refits on the Fractal Softworks forum](https://fractalsoftworks.com/forum/index.php?topic=36318.0)
@@ -33,7 +33,7 @@ The mod can be added to an existing save.
 
 ## How to use
 
-Open the refit screen and press **Ship upgrades** under vanilla's **Build in** button (hotkey **S**). It also appears in the add-hullmod picker and in LunaLib's refit button list.
+Open the refit screen and press **Ship upgrades** under vanilla's **Build in** button (hotkey **H**). It also appears in the add-hullmod picker and in LunaLib's refit button list.
 
 - **Buy a slot:** spend the ship's XP on an extra S-mod slot. This works anywhere.
 - **Build in or remove:** tick hullmods in the table, then press **Confirm (G)**. You must be docked at a market, and it costs credits.

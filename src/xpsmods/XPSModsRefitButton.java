@@ -47,7 +47,10 @@ public class XPSModsRefitButton extends BaseRefitButton {
         // Sit exactly where vanilla's dialog does: over the frame, right of the (dimmed) fleet list.
         RefitFrame frame = RefitFrame.current();
         backgroundPanel.getPosition().inTL(frame.left + RefitFrame.FLEET_LIST_W, frame.top);
-        RefitFrame.addDimmer(frame, backgroundPanel);
+        // Over the add-hullmod picker, its own dim already covers the fleet list.
+        boolean overPicker = backgroundPanel.getPlugin() instanceof DialogBackground
+                && ((DialogBackground) backgroundPanel.getPlugin()).overPicker;
+        if (!overPicker) RefitFrame.addDimmer(frame, backgroundPanel);
         new BuildInDialog(this, backgroundPanel, member, variant, market).build();
     }
 

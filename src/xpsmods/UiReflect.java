@@ -2,9 +2,11 @@ package xpsmods;
 
 import com.fs.starfarer.api.campaign.CampaignUIAPI;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
+import com.fs.starfarer.api.ui.UIPanelAPI;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,9 +68,15 @@ final class UiReflect {
         return target != null && find(target.getClass(), name, argCount) != null;
     }
 
+    /** A panel's children: public API since 0.98.5 (getChildrenCopy2), reflection for anything else. */
     @SuppressWarnings("unchecked")
     static List<Object> children(Object panel) throws Throwable {
+        if (panel instanceof UIPanelAPI) return new ArrayList<Object>(((UIPanelAPI) panel).getChildrenCopy2());
         return (List<Object>) call(panel, "getChildrenNonCopy");
+    }
+
+    static boolean isPanel(Object o) throws Throwable {
+        return o instanceof UIPanelAPI || hasMethod(o, "getChildrenNonCopy", 0);
     }
 
     /** The core UI panel that holds the refit screen, inside or outside an interaction dialog. */

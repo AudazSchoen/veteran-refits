@@ -37,7 +37,7 @@ public final class XPSModsSettings implements LunaSettingsListener {
     public static boolean allowNoBuildIn = false;
     public static float removalFeeFraction = 0.25f;
     /** LWJGL key code for the refit button; 0 means no hotkey. */
-    public static int refitHotkey = Keyboard.KEY_S;
+    public static int refitHotkey = Keyboard.KEY_H;
     /** Testing only: when above 0, every ship is treated as having this many bought slots. */
     public static int debugGrantSlots = 0;
     public static boolean showUpgradeIcon = true;

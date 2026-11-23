@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-All milestones, including the polish steps, are done and released as **Veteran Refits 1.0.1** (see GitHub and releases below). Mod id `xpsmods`, plugin class `xpsmods.XPSModsPlugin`, Java sources under `src/xpsmods/`.
+All milestones, including the polish steps, are done and released (currently **Veteran Refits 1.0.3**, updated for 0.98.5a) (see GitHub and releases below). Mod id `xpsmods`, plugin class `xpsmods.XPSModsPlugin`, Java sources under `src/xpsmods/`.
 
 - Settings are LunaLib mod settings: fields, defaults, ranges and tabs live in `data/config/LunaSettings.csv` (ids `xpsmods_<field>`). `XPSModsSettings.init()` (called in `onApplicationLoad`) reads them and registers a `LunaSettingsListener`, so menu changes apply without a restart. The hotkey change applies the next time refit opens. A new tunable needs a CSV row, a static field, and a line in `settingsChanged`. There is no JSON settings file any more.
 - `XPData` stores XP as a `HashMap<String, Float>` in sector persistent data under `"xpsmods_xp"`, keyed by `FleetMemberAPI.getId()`.
@@ -20,8 +20,8 @@ All milestones, including the polish steps, are done and released as **Veteran R
   - `SModRules` holds the rules and costs. The build-in list and S-mod count follow vanilla (`getNonBuiltInHullmods()` minus hidden, d-mod, perma and `no_build_in` mods; `Misc.getCurrSpecialMods`). Enhanced built-ins (`variant.getSModdedBuiltIns()`) are rows of their own: they need `hasSModEffect() && !isSModEffectAPenalty()` and, like vanilla, don't count against the S-mod limit.
   - Module tabs of multi-section ships work. Their own hullmods and S-mods are listed, each module may use up to the main ship's limit (as in Progressive S-Mods), and slot buying stays on the main hull. Vanilla's own story-point build-in on a module still shows the vanilla limit, because the hidden hullmod is only on the main hull.
   - `ShipDataPruner` (a transient script that runs once a month in game time) marks ships seen in the player fleet or any market storage, across all locations, under `"xpsmods_lastSeen"`. It removes data unseen for `pruneAfterMonths` (default 12 game months, converted with the clock's own days per month; 0 = never). Battle losses are handled by `XPBattleListener`. During engagements, player ships are almost always "disabled", not "destroyed" (the auto-resolver only ever disables), and whether one is really lost is only decided after recovery. So knocked-out ships are remembered, and in `reportBattleOccurred`, which fires after the post-battle recovery dialog, any not back in the fleet lose their data. That covers destroyed ships, ships not recovered, and ships lost on a retreat. A ship we hold data for counts as the player's even after the game has taken it out of the fleet.
-  - `RefitButtonHook` (a transient every-frame script) re-attaches a "Ship upgrades" button with the `refitHotkey` under vanilla "Build in" via `coreUI.getCurrentTab().getRefitPanel().getModDisplay().getMods().getPerm()`. It opens the panel the way LunaLib's `RefitButtonAdder` does (Exiled Sector's `RefitPanelLauncher` does the same). On any reflection failure it logs once and switches off until the game restarts.
-  - `UiReflect`: the game blocks `java.lang.reflect` in mod code, so reflection goes through `MethodHandles` on `Class.forName("java.lang.reflect.Method")`, the same as LunaLib. Reference sources: `../LunaLib-2.0.5/src`, `../Progressive S-Mods-1.2.0/src`. Exiled Sector (`../Exiled Sector-0.12.4`) only ships jars; read them with `javap -p -c -constants`.
+  - `RefitButtonHook` (a transient every-frame script) re-attaches a "Ship upgrades" button with the `refitHotkey` under vanilla "Build in" via `coreUI.getCurrentTab().getRefitPanel().getModDisplay().getMods().getPerm()`. It opens the panel the way LunaLib's `RefitButtonAdder` does (Exiled Sector's `RefitPanelLauncher` does the same). On any reflection failure it logs once and switches off until the game restarts. The panel's background is our `DialogBackground` (a Java copy of LunaLib's `RefitPanelBackgroundPlugin`); when opened from the add-hullmod picker it skips the screen dim and `XPSModsRefitButton.initPanel` skips the fleet-list dimmer, because the picker already dims. MagicLib adds a "Paintjob" button (customData `PAINTJOB_BUTTON`, hotkey S) below the last element of the same panel; `makeRoomBelow` moves it below ours when they overlap.
+  - `UiReflect`: the game blocks `java.lang.reflect` in mod code, so reflection goes through `MethodHandles` on `Class.forName("java.lang.reflect.Method")`, the same as LunaLib. `children()` uses the public `UIPanelAPI.getChildrenCopy2()` (added in 0.98.5) and only falls back to reflective `getChildrenNonCopy` for non-API panels. Reference sources: `../LunaLib-2.1.0/src`. Progressive S-Mods and Exiled Sector are no longer installed. Read obfuscated game classes with `javap -p -c -constants -cp ../../starfarer_obf.jar`.
 - Polish step 1 (upgrade icon) is done. The icon is shown on the refit screen only; the fleet screen was deliberately skipped.
   - `UpgradeIconOverlay` is an input-less panel on the refit tab. It draws vanilla's `graphics/icons/intel/log_upgrade.png` in the top-left of ship cards (the top-right holds vanilla's S-mod/d-mod indicators) where `XPData.canBuySlot` is true, reading `refitTab.getFleetList().getItems()` and `refitTab.getButtonToMember()` every frame. It has its own failure switch, separate from the "Build in" button's.
 - Battle report (setting `battleReport`): after awarding XP, `XPBattleListener.report` writes to the post-battle dialog's text panel (`getCurrentInteractionDialog()`, falling back to the last dialog from `reportShownInteractionDialog`). It lists XP per deployed ship, highest first, a reserve summary, and the ships that can buy a slot, with the ones that just became ready marked "(new)".
@@ -34,7 +34,7 @@ All milestones, including the polish steps, are done and released as **Veteran R
 
 - `./build.sh` compiles everything under `src/` with `javac --release 17` against the game's jars (`starfarer.api.jar`, `json.jar`, `log4j`, `xstream`, `lwjgl`) and writes `jars/xpsmods.jar`. That jar is what the game loads (see `"jars"` in `mod_info.json`), so rebuild before launching. There are no tests.
 - `../../jre_linux` is a JRE only, with no `javac` or `jar`. The build uses the system JDK 17 (`jdk17-openjdk`, `/usr/lib/jvm/java-17-openjdk`). Set `JAVA_HOME` to use a different one.
-- New game jars needed at compile time go in the `for j in ...` list in `build.sh`. Library mod jars go in the second loop (currently LunaLib), and must match `dependencies` in `mod_info.json`.
+- New game jars needed at compile time go in the `for j in ...` list in `build.sh`. Library mod jars are added after that (currently LunaLib, the newest `mods/LunaLib-*` found), and must match `dependencies` in `mod_info.json`.
 - `build/` and `jars/xpsmods.jar` are build outputs and are git-ignored.
 
 ## GitHub and releases
@@ -52,10 +52,10 @@ All milestones, including the polish steps, are done and released as **Veteran R
 ## Environment
 
 - The repo is the mod folder itself: `<Starsector>/mods/MyFirstMod` (the user may rename the folder to `Veteran Refits`; Starsector doesn't care). The game install is two levels up (`../..`), so the game loads the mod straight from the working tree.
-- Game version in use: **0.98a-RC8** (the version the installed mods target). Set `"gameVersion"` in `mod_info.json` to match.
+- Game version in use: **0.98.5a-RC8** (the version the installed mods target). Set `"gameVersion"` in `mod_info.json` to match.
 - Bundled runtime: `../../jre_linux` (Zulu OpenJDK 17). Compile against Java 17 or lower.
 - Game API to compile against: `../../starfarer.api.jar`. API sources for reference: `../../starfarer.api.zip`.
-- Library mods installed in `../`: `LazyLib-3.0.0` (id `lw_lazylib`) and `MagicLib-1.5.6`. If you use them, list them under `dependencies` in `mod_info.json` and add their jars to the compile classpath.
+- Library mods installed in `../`: `LunaLib-2.1.0`, `LazyLib-3.0.0` (id `lw_lazylib`) and `MagicLib-1.6.1`. If you use them, list them under `dependencies` in `mod_info.json` and add their jars to the compile classpath.
 - Run the game: `cd ../.. && ./starsector.sh`. The mod must be enabled in the launcher or listed in `../enabled_mods.json`.
 - Logs: `../../starsector.log`. Script compile errors, missing-class errors, and mod plugin errors show up here, so check it first when the game fails to load.
 
@@ -94,7 +94,7 @@ Every number below is a LunaLib mod setting (`data/config/LunaSettings.csv`), so
 
 Where the player does it
 
-In the refit screen there's a "Ship upgrades" button under the vanilla "Build in" button (hotkey `refitHotkey`, default S; U is vanilla refit's Undo), plus an entry in LunaLib's refit button list. Both open the same panel for the selected ship: see its XP, slots and costs, then buy a slot, or build in or remove a hullmod. Buying slots with XP works anywhere. Building in and removing S-mods for credits needs the player docked at a market (LunaLib's `market` is non-null). This replaced the original plan of a market dialog through rules.csv.
+In the refit screen there's a "Ship upgrades" button under the vanilla "Build in" button (hotkey `refitHotkey`, default H: MagicLib's Paintjob button uses S, vanilla Strip uses T, and U is vanilla refit's Undo), plus an entry in LunaLib's refit button list. Both open the same panel for the selected ship: see its XP, slots and costs, then buy a slot, or build in or remove a hullmod. Buying slots with XP works anywhere. Building in and removing S-mods for credits needs the player docked at a market (LunaLib's `market` is non-null). This replaced the original plan of a market dialog through rules.csv.
 
 Implementation notes (verify every API name in starfarer.api.zip before using it)
 

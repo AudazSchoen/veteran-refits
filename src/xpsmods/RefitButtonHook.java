@@ -9,11 +9,11 @@ import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
 import com.fs.starfarer.api.ui.CutStyle;
+import com.fs.starfarer.api.ui.PositionAPI;
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Misc;
 import lunalib.backend.ui.refit.RefitButtonAdder;
-import lunalib.backend.ui.refit.RefitPanelBackgroundPlugin;
 import lunalib.lunaRefit.BaseRefitButton;
 import lunalib.lunaRefit.LunaRefitManager;
 import java.util.Set;
@@ -32,6 +32,8 @@ public class RefitButtonHook implements EveryFrameScript {
     private static final String BUTTON_ID = "xpsmods_refit_button";
     private static final float GAP_BELOW_BUILD_IN = 3f;
     private static final float X_ALIGN_OFFSET = -5f;
+    /** customData of MagicLib's "Paintjob" button (MagicPaintjobRefitPanelCreator). */
+    private static final String MAGICLIB_PAINTJOB_ID = "PAINTJOB_BUTTON";
 
     /** Set on the first failure; the hook then stays off until the game restarts. */
     private static boolean failed = false;
@@ -79,15 +81,15 @@ public class RefitButtonHook implements EveryFrameScript {
             Object refitPanel = UiReflect.call(tab, "getRefitPanel");
             Object modDisplay = UiReflect.call(refitPanel, "getModDisplay");
             if (modDisplay == null) return;
-            ensureButton(UiReflect.call(modDisplay, "getMods"));
+            ensureButton(UiReflect.call(modDisplay, "getMods"), false);
 
             // The "add hullmod" picker (ModPickerDialogV3) is a child of the core UI with its own copy of
             // the mod display, and so its own "Build in" button (same approach as Progressive S-Mods).
             for (Object child : UiReflect.children(UiReflect.coreUI(ui))) {
-                if (!UiReflect.hasMethod(child, "getChildrenNonCopy", 0)) continue;
+                if (!UiReflect.isPanel(child)) continue;
                 for (Object sub : UiReflect.children(child)) {
                     if (sub != modDisplay && sub != null && sub.getClass() == modDisplay.getClass()) {
-                        ensureButton(UiReflect.call(sub, "getMods"));
+                        ensureButton(UiReflect.call(sub, "getMods"), true);
                     }
                 }
             }
@@ -98,25 +100,47 @@ public class RefitButtonHook implements EveryFrameScript {
         }
     }
 
-    /** Adds our button under this mods panel's "Build in" button, unless it's already there. */
-    private static void ensureButton(Object mods) throws Throwable {
+    /**
+     * Adds our button under this mods panel's "Build in" button, unless it's already there.
+     * {@code inPicker}: this is the add-hullmod picker's copy of the panel.
+     */
+    private static void ensureButton(Object mods, boolean inPicker) throws Throwable {
         if (!(mods instanceof UIPanelAPI)) return;
         Object perm = UiReflect.call(mods, "getPerm");
         if (!(perm instanceof ButtonAPI)) return;
         // The game rebuilds these panels (for example when switching ships), so re-attach when missing.
+        CustomPanelAPI ours = null;
         for (Object child : UiReflect.children(mods)) {
             if (child instanceof CustomPanelAPI && ((CustomPanelAPI) child).getPlugin() instanceof ColumnButtonPlugin) {
-                return;
+                ours = (CustomPanelAPI) child;
+                break;
             }
         }
-        attach((UIPanelAPI) mods, (ButtonAPI) perm);
+        if (ours == null) ours = attach((UIPanelAPI) mods, (ButtonAPI) perm, inPicker);
+        makeRoomBelow((UIPanelAPI) mods, ours);
     }
 
-    private static void attach(UIPanelAPI mods, ButtonAPI perm) {
+    /**
+     * MagicLib puts its "Paintjob" button below whatever was last in this panel. If it got there
+     * before us, it sits right where our button goes, so move it below ours.
+     */
+    private static void makeRoomBelow(UIPanelAPI mods, CustomPanelAPI ours) throws Throwable {
+        PositionAPI o = ours.getPosition();
+        for (Object child : UiReflect.children(mods)) {
+            if (!(child instanceof ButtonAPI)) continue;
+            ButtonAPI b = (ButtonAPI) child;
+            if (!MAGICLIB_PAINTJOB_ID.equals(b.getCustomData())) continue;
+            PositionAPI p = b.getPosition();
+            // Its top edge is above our bottom edge: they overlap.
+            if (p.getY() + p.getHeight() > o.getY() - 1f) p.belowLeft(ours, GAP_BELOW_BUILD_IN);
+        }
+    }
+
+    private static CustomPanelAPI attach(UIPanelAPI mods, ButtonAPI perm, boolean inPicker) {
         float width = perm.getPosition().getWidth();
         float height = perm.getPosition().getHeight();
 
-        ColumnButtonPlugin plugin = new ColumnButtonPlugin();
+        ColumnButtonPlugin plugin = new ColumnButtonPlugin(inPicker);
         CustomPanelAPI panel = Global.getSettings().createCustom(width, height, plugin);
         TooltipMakerAPI element = panel.createUIElement(width, height, false);
         element.setButtonFontOrbitron20();
@@ -128,6 +152,7 @@ public class RefitButtonHook implements EveryFrameScript {
 
         mods.addComponent(panel);
         panel.getPosition().belowMid(perm, GAP_BELOW_BUILD_IN).setXAlignOffset(X_ALIGN_OFFSET);
+        return panel;
     }
 
     /**
@@ -165,8 +190,11 @@ public class RefitButtonHook implements EveryFrameScript {
         }
     }
 
-    /** Opens our LunaLib panel the same way LunaLib's own refit button list does (RefitButtonAdder.kt). */
-    static void openPanel() {
+    /**
+     * Opens our LunaLib panel the same way LunaLib's own refit button list does (RefitButtonAdder.kt),
+     * but with our {@link DialogBackground}, which leaves out the screen dim when {@code overPicker}.
+     */
+    static void openPanel(boolean overPicker) {
         BaseRefitButton button = LunaRefitManager.getFirstButtonOfClass(XPSModsRefitButton.class);
         RefitButtonAdder adder = RefitFrame.lunaAdder();
         if (button == null || adder == null) {
@@ -184,23 +212,29 @@ public class RefitButtonHook implements EveryFrameScript {
 
         float width = button.getPanelWidth(adder.getMember(), adder.getVariant());
         float height = button.getPanelHeight(adder.getMember(), adder.getVariant());
-        RefitPanelBackgroundPlugin background = new RefitPanelBackgroundPlugin(corePanel, true);
+        DialogBackground background = new DialogBackground(overPicker);
         CustomPanelAPI panel = Global.getSettings().createCustom(width, height, background);
         adder.setActivePanel(panel);
         adder.setActivePanelButton(button);
         panel.getPosition().inTL(Global.getSettings().getScreenWidth() / 2f - width / 2f,
                 Global.getSettings().getScreenHeight() / 2f - height / 2f);
-        background.setPanel(panel);
+        background.panel = panel;
         corePanel.addComponent(panel);
         button.initPanel(panel, adder.getMember(), adder.getVariant(), adder.getMarket());
     }
 
     private static class ColumnButtonPlugin extends BaseCustomUIPanelPlugin {
+        private final boolean inPicker;
+
+        ColumnButtonPlugin(boolean inPicker) {
+            this.inPicker = inPicker;
+        }
+
         @Override
         public void buttonPressed(Object buttonId) {
             if (!BUTTON_ID.equals(buttonId)) return;
             try {
-                openPanel();
+                openPanel(inPicker);
             } catch (Throwable t) {
                 log.error("Veteran Refits: failed to open the refit panel", t);
             }

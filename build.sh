@@ -16,9 +16,13 @@ for j in starfarer.api.jar json.jar log4j-1.2.9.jar xstream-1.4.10.jar lwjgl.jar
     CP="$CP${CP:+:}$GAME/$j"
 done
 # Library mods (must match "dependencies" in mod_info.json).
-for j in "LunaLib-2.0.5/jars/LunaLib.jar"; do
-    CP="$CP:$GAME/mods/$j"
-done
+# The newest installed LunaLib, so a LunaLib update doesn't break the build.
+LUNA="$(ls -d "$GAME"/mods/LunaLib-*/jars/LunaLib.jar 2>/dev/null | sort -V | tail -n 1)"
+if [[ -z "$LUNA" ]]; then
+    echo "error: no mods/LunaLib-*/jars/LunaLib.jar found in $GAME" >&2
+    exit 1
+fi
+CP="$CP:$LUNA"
 
 cd "$MOD_DIR"
 rm -rf build

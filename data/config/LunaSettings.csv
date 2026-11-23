@@ -24,7 +24,7 @@ xpsmods_allowNoBuildIn,Allow building in any hullmod,Boolean,false,,"Lets hullmo
 xpsmods_allowRemoval,Allow removing S-mods,Boolean,true,,Allows removing S-mods and built-in enhancements for a fee. Bought slots stay.,,,Credits
 xpsmods_removalFeeFraction,Removal fee,Double,0.25,,"Removing costs this fraction of the build-in price (at least the minimum cost, except for built-in enhancements).",0,2,Credits
 xpsmods_headerInterface,Interface,Header,Refit screen,,,,,Interface
-xpsmods_refitHotkey,Ship upgrades hotkey,Keycode,31,,Hotkey for the Ship upgrades button under vanilla's Build in button in the refit screen. Applies the next time the refit screen is opened.,,,Interface
+xpsmods_refitHotkey,Ship upgrades hotkey,Keycode,35,,Hotkey for the Ship upgrades button under vanilla's Build in button in the refit screen. Applies the next time the refit screen is opened.,,,Interface
 xpsmods_showUpgradeIcon,Show upgrade icon,Boolean,true,,Shows a green arrow on refit ship cards for ships with enough XP to buy their next slot.,,,Interface
 xpsmods_battleReport,Battle report,Boolean,true,,"After each engagement, lists the XP each ship earned and which ships can buy an S-mod slot in the post-battle dialog.",,,Interface
 xpsmods_headerData,Saved data,Header,Saved ship data,,,,,Data
